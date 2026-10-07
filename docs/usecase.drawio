@@ -1,0 +1,101 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="RsV4WW_CifI3UUV-irxA">
+    <mxGraphModel dx="822" dy="441" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="690" width="390" x="335" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;Hệ thống: Tiếp nhận và Phân loại yêu cầu bảo hành&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="300" x="370" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-3" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="UC1: Tra cứu khách hàng theo SĐT" vertex="1">
+          <mxGeometry height="60" width="180" x="450" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-4" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="UC2: Tạo khách hàng mới khi chưa có" vertex="1">
+          <mxGeometry height="60" width="180" x="350" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-5" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="UC3: Tạo phiếu bảo hành mới" vertex="1">
+          <mxGeometry height="60" width="180" x="410" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-6" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="UC4: Phân loại nhóm sự cố và mức ưu tiên" vertex="1">
+          <mxGeometry height="60" width="180" x="440" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-7" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="UC5: Tính toán hạn cam kết" vertex="1">
+          <mxGeometry height="60" width="180" x="370" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-8" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="UC6: Cập nhật lịch sử trao đổi" vertex="1">
+          <mxGeometry height="60" width="180" x="360" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-15" edge="1" parent="1" source="hhfapko1V7Oi5PTTcwlQ-7" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;">
+          <mxGeometry relative="1" width="160" x="-0.0051" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="390.00000000000006" y="585" as="sourcePoint" />
+            <mxPoint x="423.42038969321067" y="446.23320343559635" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-16" edge="1" parent="1" source="hhfapko1V7Oi5PTTcwlQ-4" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" target="hhfapko1V7Oi5PTTcwlQ-5" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="413" y="600" as="sourcePoint" />
+            <mxPoint x="446" y="461" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-17" edge="1" parent="1" source="hhfapko1V7Oi5PTTcwlQ-5" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=0.773;exitY=0.137;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.639;entryY=0.95;entryDx=0;entryDy=0;entryPerimeter=0;" value="&amp;lt;&amp;lt;included&amp;gt;&amp;gt;">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="550" y="400" as="sourcePoint" />
+            <mxPoint x="582.98" y="267.98" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-18" edge="1" parent="1" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=0.75;exitY=0.933;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.639;entryY=0.083;entryDx=0;entryDy=0;entryPerimeter=0;" target="hhfapko1V7Oi5PTTcwlQ-6" value="&amp;lt;&amp;lt;included&amp;gt;&amp;gt;">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="545" y="460" as="sourcePoint" />
+            <mxPoint x="582.98" y="282" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-19" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Nhân viên tiếp nhận" vertex="1">
+          <mxGeometry height="60" width="30" x="50" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-20" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Hệ thống nhắc hạn" vertex="1">
+          <mxGeometry height="60" width="30" x="60" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-22" edge="1" parent="1" source="hhfapko1V7Oi5PTTcwlQ-19" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="hhfapko1V7Oi5PTTcwlQ-3" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="390" y="590" as="sourcePoint" />
+            <mxPoint x="440" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-24" edge="1" parent="1" source="hhfapko1V7Oi5PTTcwlQ-19" style="endArrow=none;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="390" y="590" as="sourcePoint" />
+            <mxPoint x="440" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-25" edge="1" parent="1" source="hhfapko1V7Oi5PTTcwlQ-4" style="endArrow=none;html=1;rounded=0;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="hhfapko1V7Oi5PTTcwlQ-19" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="390" y="590" as="sourcePoint" />
+            <mxPoint x="440" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-26" edge="1" parent="1" source="hhfapko1V7Oi5PTTcwlQ-19" style="endArrow=none;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" target="hhfapko1V7Oi5PTTcwlQ-5" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="390" y="590" as="sourcePoint" />
+            <mxPoint x="440" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-27" edge="1" parent="1" source="hhfapko1V7Oi5PTTcwlQ-19" style="endArrow=none;html=1;rounded=0;entryX=0.183;entryY=0.15;entryDx=0;entryDy=0;entryPerimeter=0;" target="hhfapko1V7Oi5PTTcwlQ-8" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="390" y="590" as="sourcePoint" />
+            <mxPoint x="440" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hhfapko1V7Oi5PTTcwlQ-28" edge="1" parent="1" source="hhfapko1V7Oi5PTTcwlQ-7" style="endArrow=none;html=1;rounded=0;exitX=0.106;exitY=0.217;exitDx=0;exitDy=0;exitPerimeter=0;" target="hhfapko1V7Oi5PTTcwlQ-20" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="390" y="590" as="sourcePoint" />
+            <mxPoint x="440" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
