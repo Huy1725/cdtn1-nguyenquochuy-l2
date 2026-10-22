@@ -13,7 +13,21 @@ Hệ thống hỗ trợ nhân viên cửa hàng tiếp nhận nhanh chóng và c
 * Biến môi trường: xem cấu hình chi tiết tại file `.env.example`
 
 ## 3. Hướng dẫn chạy
+```powershell
+npm install
+npm test
+npm start
+```
 
+Mở terminal thứ hai để chạy giao diện React:
+
+```powershell
+npm run dev
+```
+
+Truy cập `http://localhost:5173`. API chạy tại `http://localhost:3000`.
+Migration và seed MySQL nằm trong `migrations/` và `seeds/`; mã nguồn ứng dụng
+nằm trong `src/`.
 
 ## 4. Cấu trúc thư mục
 
@@ -26,4 +40,3 @@ Hệ thống hỗ trợ nhân viên cửa hàng tiếp nhận nhanh chóng và c
 - [x] Hoàn thành tài liệu Phân tích & Thiết kế (Bài tập 1): Sơ đồ Kiến trúc, ERD, Wireframe (Buổi 6).
 - [ ] Xây dựng API và lớp nghiệp vụ cho module Tiếp nhận yêu cầu (Buổi 8–10).
 - [ ] Viết Unit Test cho lớp Service xử lý các quy tắc QT-01, QT-04, QT-13 (Buổi 10–12).
-
