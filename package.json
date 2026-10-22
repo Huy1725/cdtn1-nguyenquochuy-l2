@@ -1,0 +1,25 @@
+{
+  "name": "cdtn1-nguyenquochuy-l2",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Module tiep nhan va phan loai yeu cau bao hanh",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.5"
+  }
+}
