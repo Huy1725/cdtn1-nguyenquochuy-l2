@@ -1,4 +1,4 @@
-import { validationError } from "./errors.js";
+import { validationError } from "../errors/AppError.js";
 
 export const PRIORITIES = Object.freeze({
   CAO: 24,
@@ -6,22 +6,22 @@ export const PRIORITIES = Object.freeze({
   THAP: 120
 });
 
-export const TICKET_STATUSES = Object.freeze(["MOI", "DANG_XU_LY", "HOAN_TAT", "DA_HUY"]);
+export const TICKET_STATUSES = Object.freeze(["MOI", "DANG_XU_LY", "HOAN_TAT", "HUY"]);
 
-export function normalizePhone(phone) {
-  return typeof phone === "string" ? phone.trim() : "";
-}
+const HOUR_MS = 3_600_000;
+const DAY_MS = 24 * HOUR_MS;
+const LOCAL_OFFSET_MS = 7 * HOUR_MS; // UTC+7, mui gio cua API contract
 
-export function validatePhone(phone) {
-  const normalized = normalizePhone(phone);
-  if (!/^\d{10}$/.test(normalized)) {
-    throw validationError({ phone: "So dien thoai phai gom dung 10 chu so" });
-  }
-  return normalized;
+function localTime(date) {
+  return date.getTime() + LOCAL_OFFSET_MS;
 }
 
 function isSunday(date) {
-  return date.getUTCDay() === 0;
+  return new Date(localTime(date)).getUTCDay() === 0;
+}
+
+function msUntilLocalMidnight(date) {
+  return DAY_MS - (((localTime(date) % DAY_MS) + DAY_MS) % DAY_MS);
 }
 
 export function addBusinessHours(start, hours) {
@@ -33,15 +33,13 @@ export function addBusinessHours(start, hours) {
   let remaining = hours;
   while (remaining > 0) {
     if (isSunday(result)) {
-      result.setUTCDate(result.getUTCDate() + 1);
+      result.setTime(result.getTime() + DAY_MS);
       continue;
     }
 
-    const midnight = new Date(result);
-    midnight.setUTCHours(24, 0, 0, 0);
-    const available = Math.max(1, Math.ceil((midnight - result) / 3_600_000));
+    const available = Math.max(1, Math.ceil(msUntilLocalMidnight(result) / HOUR_MS));
     const consumed = Math.min(remaining, available);
-    result.setTime(result.getTime() + consumed * 3_600_000);
+    result.setTime(result.getTime() + consumed * HOUR_MS);
     remaining -= consumed;
   }
   return result;
@@ -54,11 +52,18 @@ export function calculateDueDate(receivedAt, priority) {
   return addBusinessHours(new Date(receivedAt), PRIORITIES[priority]);
 }
 
-export function warrantyStatus(purchasedAt, warrantyMonths, at = new Date()) {
-  if (!purchasedAt || !Number.isInteger(warrantyMonths) || warrantyMonths < 0) {
+export function warrantyStatus(purchaseDate, warrantyMonths, at = new Date()) {
+  if (!purchaseDate || !Number.isInteger(warrantyMonths) || warrantyMonths < 0) {
     return "KHONG_XAC_DINH";
   }
-  const expiresAt = new Date(purchasedAt);
-  expiresAt.setUTCMonth(expiresAt.getUTCMonth() + warrantyMonths);
-  return new Date(at) <= expiresAt ? "CON_BAO_HANH" : "HET_BAO_HANH";
+  // So sanh theo NGAY lich UTC+7: ngay cuoi cung cua bao hanh van con bao hanh het ngay.
+  const purchase = new Date(purchaseDate);
+  const monthIndex = purchase.getUTCMonth() + warrantyMonths;
+  const year = purchase.getUTCFullYear() + Math.floor(monthIndex / 12);
+  const month = monthIndex % 12;
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const expiresOn = new Date(Date.UTC(year, month, Math.min(purchase.getUTCDate(), lastDay)));
+  const receivedOn = new Date(localTime(new Date(at)));
+  const receivedDay = Date.UTC(receivedOn.getUTCFullYear(), receivedOn.getUTCMonth(), receivedOn.getUTCDate());
+  return receivedDay <= expiresOn.getTime() ? "CON_BAO_HANH" : "HET_BAO_HANH";
 }
