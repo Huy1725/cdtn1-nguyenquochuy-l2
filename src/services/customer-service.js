@@ -1,47 +1,56 @@
-import { AppError, validationError } from "../domain/errors.js";
-import { validatePhone } from "../domain/warranty.js";
+import { AppError } from "../errors/AppError.js";
 
+function notFound() {
+  return new AppError("CUSTOMER_NOT_FOUND", "Khong tim thay khach hang");
+}
+
+// Service chi chua quy tac nghiep vu; du lieu vao da duoc validators kiem tra dinh dang.
 export class CustomerService {
-  constructor(repository) {
-    this.repository = repository;
+  constructor({ customerRepository, ticketRepository }) {
+    this.repository = customerRepository;
+    this.tickets = ticketRepository;
   }
 
   findByPhone(phone) {
-    return this.repository.findByPhone(validatePhone(phone));
+    return this.repository.findByPhone(phone);
   }
 
+  get(id) {
+    const customer = this.repository.findById(id);
+    if (!customer) throw notFound();
+    return customer;
+  }
+
+  // QT-01: mot so dien thoai 10 so chi tuong ung mot ho so khach hang.
   create(input) {
-    const phone = validatePhone(input?.phone);
-    const fullName = typeof input?.full_name === "string" ? input.full_name.trim() : "";
-    if (!fullName) throw validationError({ full_name: "Ho ten la truong bat buoc" });
-    if (this.repository.findByPhone(phone)) {
-      throw new AppError(409, "CUSTOMER_EXISTS", "So dien thoai da ton tai");
+    this.#assertPhoneFree(input.phone);
+    return this.repository.save({ ...input });
+  }
+
+  update(id, changes) {
+    const current = this.get(id);
+    if (changes.phone !== undefined && changes.phone !== current.phone) this.#assertPhoneFree(changes.phone);
+    return this.repository.update(current.customer_id, changes);
+  }
+
+  // Khach da co thiet bi hoac phieu thi giu lai de bao toan truy vet (QT-13).
+  delete(id) {
+    const current = this.get(id);
+    if (this.repository.listDevices(id).length > 0 || this.tickets.existsForCustomer(id)) {
+      throw new AppError("CUSTOMER_IN_USE", "Khach hang da co thiet bi hoac phieu, khong the xoa");
     }
-    return this.repository.save({ ...input, phone, full_name: fullName });
+    this.repository.delete(current.customer_id);
+    return { customer_id: current.customer_id, deleted: true };
   }
 
   devices(id) {
-    const customer = this.repository.findById(id);
-    if (!customer) throw new AppError(404, "CUSTOMER_NOT_FOUND", "Khong tim thay khach hang");
-    return customer.devices ?? [];
+    this.get(id);
+    return this.repository.listDevices(id);
   }
 
-  update(id, input) {
-    const current = this.repository.findById(id);
-    if (!current || current.deleted_at) throw new AppError(404, "CUSTOMER_NOT_FOUND", "Khong tim thay khach hang");
-    const phone = validatePhone(input?.phone ?? current.phone);
-    const fullName = typeof (input?.full_name ?? current.full_name) === "string"
-      ? (input?.full_name ?? current.full_name).trim()
-      : "";
-    if (!fullName) throw validationError({ full_name: "Ho ten la truong bat buoc" });
-    const other = this.repository.findByPhone(phone);
-    if (other && other.id !== Number(id)) throw new AppError(409, "CUSTOMER_EXISTS", "So dien thoai da ton tai");
-    return this.repository.save({ ...current, ...input, id: Number(id), phone, full_name: fullName });
-  }
-
-  delete(id) {
-    const current = this.repository.findById(id);
-    if (!current || current.deleted_at) throw new AppError(404, "CUSTOMER_NOT_FOUND", "Khong tim thay khach hang");
-    return this.repository.delete(id, new Date().toISOString());
+  #assertPhoneFree(phone) {
+    if (this.repository.findByPhone(phone)) {
+      throw new AppError("CUSTOMER_EXISTS", "So dien thoai da ton tai", { phone: "So dien thoai da ton tai" });
+    }
   }
 }

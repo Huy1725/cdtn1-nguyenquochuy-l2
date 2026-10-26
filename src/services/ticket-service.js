@@ -1,81 +1,108 @@
-import { AppError, validationError } from "../domain/errors.js";
-import { calculateDueDate, PRIORITIES, TICKET_STATUSES, warrantyStatus } from "../domain/warranty.js";
+import { AppError, invalidReference } from "../errors/AppError.js";
+import { calculateDueDate, warrantyStatus } from "../domain/warranty.js";
 
-function requiredString(value, field) {
-  if (typeof value !== "string" || !value.trim()) {
-    throw validationError({ [field]: "Truong bat buoc, khong duoc de trong" });
-  }
-  return value.trim();
+const DEFAULT_STAFF_ID = 1;
+
+function notFound() {
+  return new AppError("TICKET_NOT_FOUND", "Khong tim thay phieu");
 }
 
+// Service chi chua quy tac nghiep vu; du lieu vao da duoc validators kiem tra dinh dang.
 export class TicketService {
-  constructor({ ticketRepository, customerRepository, clock = () => new Date() }) {
+  constructor({ ticketRepository, customerRepository, classifyService, clock = () => new Date() }) {
     this.tickets = ticketRepository;
     this.customers = customerRepository;
+    this.classifier = classifyService;
     this.clock = clock;
   }
 
   create(input) {
-    const customerId = Number(input?.customer_id);
-    if (!Number.isInteger(customerId) || !this.customers.findById(customerId)) {
-      throw validationError({ customer_id: "Khach hang khong ton tai" });
+    if (!this.customers.findById(input.customer_id)) {
+      throw invalidReference("customer_id", "Khach hang khong ton tai");
     }
-    const priority = input?.priority;
-    if (!Object.hasOwn(PRIORITIES, priority)) throw validationError({ priority: "Muc uu tien khong hop le" });
-    const issueDesc = requiredString(input?.issue_desc, "issue_desc");
-    const isExternal = Boolean(input?.external_device);
-    const serial = requiredString(input?.serial, "serial");
-    if (isExternal && !requiredString(input?.source_note, "source_note")) return null;
+    let categoryId = input.category_id ?? null;
+    if (categoryId === null) {
+      categoryId = this.classifier.suggest(input.issue_desc);
+    } else if (!this.classifier.exists(categoryId)) {
+      throw invalidReference("category_id", "Nhom su co khong ton tai");
+    }
+    const device = this.#resolveDevice(input);
 
     const receivedAt = this.clock();
-    const ticket = {
-      ticket_code: `BH-${String(Date.now()).slice(-6)}-${Math.floor(Math.random() * 900 + 100)}`,
-      customer_id: customerId,
-      device_id: input?.device_id ?? null,
-      serial,
-      source_note: input?.source_note?.trim() ?? null,
-      center_id: input?.center_id ?? null,
-      issue_desc: issueDesc,
-      priority,
-      accessories: Array.isArray(input?.accessories) ? [...input.accessories] : [],
-      category_id: input?.category_id ?? null,
-      warranty_status: warrantyStatus(input?.purchased_at, input?.warranty_months, receivedAt),
+    const saved = this.tickets.save({
+      ticket_code: `BH-${String(this.tickets.nextSequence()).padStart(6, "0")}/${receivedAt.getUTCFullYear()}`,
+      customer_id: input.customer_id,
+      device_id: device.device_id,
+      category_id: categoryId,
+      issue_desc: input.issue_desc,
+      priority: input.priority,
       status: "MOI",
       received_at: receivedAt.toISOString(),
-      due_date: calculateDueDate(receivedAt, priority).toISOString(),
-      deleted_at: null
-    };
-    const saved = this.tickets.save(ticket);
-    this.tickets.appendStatusLog(saved.id, { from_status: null, to_status: "MOI", actor: input?.actor ?? "system" });
-    return { ...saved, status_log: this.tickets.statusLog(saved.id) };
+      due_date: calculateDueDate(receivedAt, input.priority).toISOString()
+    });
+    const note = input.external_device ? `Thiet bi ngoai - nguon goc: ${input.source_note}` : null;
+    this.tickets.appendStatusLog(saved.ticket_id, {
+      from_status: null,
+      to_status: "MOI",
+      note,
+      changed_by: input.changed_by ?? DEFAULT_STAFF_ID
+    });
+    return this.#detail(saved, device);
   }
 
-  list(query) {
-    const page = Math.max(1, Number(query?.page ?? 1));
-    const size = Math.min(100, Math.max(1, Number(query?.size ?? 20)));
-    return this.tickets.list({ ...query, page, size });
-  }
-
-  changeStatus(id, status, actor = "system") {
-    if (!TICKET_STATUSES.includes(status)) throw validationError({ status: "Trang thai khong hop le" });
-    const ticket = this.tickets.findById(id);
-    if (!ticket || ticket.deleted_at) throw new AppError(404, "TICKET_NOT_FOUND", "Khong tim thay phieu");
-    if (ticket.status === status) return ticket;
-    const updated = this.tickets.save({ ...ticket, status });
-    this.tickets.appendStatusLog(updated.id, { from_status: ticket.status, to_status: status, actor });
-    return { ...updated, status_log: this.tickets.statusLog(updated.id) };
+  list({ status, page, size }) {
+    return this.tickets.list({ status, page, size });
   }
 
   get(id) {
     const ticket = this.tickets.findById(id);
-    if (!ticket || ticket.deleted_at) throw new AppError(404, "TICKET_NOT_FOUND", "Khong tim thay phieu");
-    return { ...ticket, status_log: this.tickets.statusLog(ticket.id) };
+    if (!ticket) throw notFound();
+    return this.#detail(ticket, this.customers.findDeviceById(ticket.device_id));
   }
 
-  softDelete(id, actor = "system") {
-    const ticket = this.get(id);
-    const deleted = this.tickets.save({ ...ticket, deleted_at: this.clock().toISOString() });
-    this.tickets.appendStatusLog(id, { from_status: ticket.status, to_status: "DA_HUY", actor });
-    return deleted;
+  // QT-13: huy phieu la doi status sang HUY + ghi log, khong xoa du lieu.
+  changeStatus(id, { status, note = null, changed_by: changedBy }) {
+    const ticket = this.tickets.findById(id);
+    if (!ticket) throw notFound();
+    if (ticket.status === status) return this.#detail(ticket, this.customers.findDeviceById(ticket.device_id));
+    const updated = this.tickets.save({ ...ticket, status });
+    this.tickets.appendStatusLog(updated.ticket_id, {
+      from_status: ticket.status,
+      to_status: status,
+      note,
+      changed_by: changedBy ?? DEFAULT_STAFF_ID
+    });
+    return this.#detail(updated, this.customers.findDeviceById(updated.device_id));
+  }
+
+  #resolveDevice(input) {
+    if (input.external_device) {
+      if (this.customers.findDeviceBySerial(input.serial_no)) {
+        throw new AppError("DEVICE_EXISTS", "Serial da ton tai trong he thong", {
+          serial_no: "Serial da ton tai trong he thong"
+        });
+      }
+      return this.customers.saveDevice({
+        customer_id: input.customer_id,
+        serial_no: input.serial_no,
+        purchase_date: null,
+        warranty_months: null
+      });
+    }
+    const device = this.customers.findDeviceById(input.device_id);
+    if (!device || device.customer_id !== input.customer_id) {
+      throw invalidReference("device_id", "Thiet bi khong thuoc khach hang nay");
+    }
+    return device;
+  }
+
+  // Trang thai bao hanh duoc tinh tu thiet bi, khong luu trong bang ticket.
+  #detail(ticket, device) {
+    return {
+      ...ticket,
+      serial_no: device?.serial_no ?? null,
+      warranty_status: warrantyStatus(device?.purchase_date, device?.warranty_months, ticket.received_at),
+      status_log: this.tickets.statusLog(ticket.ticket_id)
+    };
   }
 }
