@@ -10,8 +10,14 @@ Bảng tổng hợp các API endpoint phục vụ cho các User Story trong lu�
 | **POST** | /api/customers | Tạo khách hàng mới khi chưa tồn tại | US2  |
 | **GET** | /api/customers/{id}/devices | Lấy danh sách thiết bị khách đã mua | US1  |
 | **POST** | /api/tickets | Tạo phiếu bảo hành mới | US1, US4  |
-| **GET** | /api/tickets?status=\&assignee= | Lấy danh sách phiếu, có lọc và phân trang | US3  |
-| **PATCH** | /api/tickets/{id}/status | Chuyển trạng thái phiếu | US5  |
+| **GET** | /api/tickets?status=\&page=\&size= | Lấy danh sách phiếu, có lọc theo trạng thái và phân trang | US3  |
+| **GET** | /api/tickets/{id} | Xem chi tiết phiếu kèm lịch sử trạng thái | US7  |
+| **PATCH** | /api/tickets/{id}/status | Chuyển trạng thái phiếu (`MOI`, `DANG_XU_LY`, `HOAN_TAT`, `HUY`), kèm `note`, `changed_by` | US5, US7  |
+| **GET** | /api/categories | Lấy danh mục nhóm sự cố | US6  |
+| **PATCH** | /api/customers/{id} | Sửa thông tin khách hàng (vẫn kiểm tra QT-01) | US2  |
+| **DELETE** | /api/customers/{id} | Xóa khách hàng chưa có thiết bị/phiếu; ngược lại trả 409 `CUSTOMER_IN_USE` | US2  |
+
+*Ghi chú (BT2):* bỏ tham số `assignee` (thuộc luồng L4); mã lỗi nghiệp vụ được ánh xạ sang HTTP: `VALIDATION_FAILED`/`INVALID_JSON` → 400, `*_NOT_FOUND` → 404, `*_EXISTS`/`*_IN_USE` → 409, `INVALID_REFERENCE` → 422. Xem `docs/thay-doi-thiet-ke.md` mục 7 và 11.
 
 **2\. Quy ước chung**
 
