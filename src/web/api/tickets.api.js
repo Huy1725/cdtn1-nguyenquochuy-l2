@@ -6,17 +6,19 @@ export const ticketsApi = {
     method: "POST",
     body: JSON.stringify(data)
   }),
+  devices: (customerId) => request(`/api/customers/${customerId}/devices`),
+  categories: () => request("/api/categories"),
   create: (data) => request("/api/tickets", {
     method: "POST",
-    body: JSON.stringify(data)
+    body: JSON.stringify({ changed_by: 1, ...data })
   }),
   list: (params = {}) => {
     const query = new URLSearchParams({ page: "1", size: "100", ...params });
     return request(`/api/tickets?${query}`);
   },
   get: (id) => request(`/api/tickets/${id}`),
-  updateStatus: (id, status) => request(`/api/tickets/${id}/status`, {
+  updateStatus: (id, status, note) => request(`/api/tickets/${id}/status`, {
     method: "PATCH",
-    body: JSON.stringify({ status, actor: "nhan_vien_tiep_nhan" })
+    body: JSON.stringify({ status, note, changed_by: 1 })
   })
 };
