@@ -112,3 +112,17 @@ Mọi sai lệch so với thiết kế ban đầu (Bài tập 1) đều được
 - **Thay đổi gì:** `src/web/api/client.js` đọc `VITE_API_BASE_URL`; CORS phía backend đọc `CORS_ORIGIN` (cả hai có trong `.env.example`). Màn hình Chi tiết phiếu có trạng thái đang tải và lỗi kèm nút Thử lại (trước đây thất bại thì rơi về form tạo phiếu); danh sách phiếu có nút Xóa bộ lọc khi lọc không ra kết quả. Bỏ dữ liệu cứng: số điện thoại mặc định, avatar "AB", nhãn "Bước 1 / 3".
 - **Vì sao:** Đề BT2 mục 2.3 và tài liệu buổi 9: không ghi cứng địa chỉ/dữ liệu, phải thấy đủ ba trạng thái (đang tải, rỗng, lỗi).
 - **Ảnh hưởng:** `src/web/*`, `.env.example`, `src/app.js`.
+
+---
+
+## 14. Repository MySQL thật cho `npm start`; toàn bộ tầng service/repository chuyển sang `async`/`await`
+
+- **Thay đổi gì:**
+  - Thêm `src/repositories/mysql/` (dùng `mysql2`, không dùng ORM — đúng lập luận kiến trúc "mẫu Repository" ở BT1 mục 3.2) gồm `pool.js`, `customer.repository.js`, `ticket.repository.js`, `category.repository.js`, cùng giao diện phương thức với `src/repositories/in-memory.js`.
+  - `src/server.js` (`npm start`) nay kết nối MySQL thật qua `createMysqlRepositories()`, kiểm tra kết nối ngay khi khởi động và báo lỗi tiếng Việt rõ ràng nếu thiếu CSDL; bỏ hàm `seedDemo()` vì dữ liệu mẫu giờ lấy từ `seeds/001_demo.sql` thật.
+  - Vì truy vấn MySQL luôn bất đồng bộ, mọi phương thức repository (kể cả bản bộ nhớ, để giữ chung một giao diện) và mọi phương thức service (`CustomerService`, `TicketService`, `ClassifyService`) đổi sang `async`/`await`; các route (`src/routes/*.routes.js`) `await` kết quả service; `tests/warranty.test.js` đổi các hàm kiểm thử sang `async`, dùng `assert.rejects` thay cho `assert.throws` ở những chỗ gọi service.
+  - Mã phiếu (`ticket_code`) không còn được `TicketService` tính trước bằng một bộ đếm đoán trước; mỗi repository tự sinh mã **sau khi** đã có `ticket_id` thật (ở MySQL: chèn tạm bằng mã placeholder duy nhất rồi cập nhật lại bằng `ticket_id` vừa được `AUTO_INCREMENT` cấp), tránh trùng mã khi có nhiều yêu cầu đồng thời.
+  - `npm test` **tiếp tục dùng repository bộ nhớ**, không đụng tới MySQL, đúng yêu cầu đề bài "kiểm thử không phụ thuộc dữ liệu có sẵn trên máy".
+  - Sửa lỗi `package.json`: script `start` trước đó chỉ chạy `node src/server.js`, không có `dotenv` cũng không nạp `.env` bằng cách nào khác, nên `process.env.DB_PASSWORD` luôn là `undefined` — mọi lần kết nối MySQL đều dùng mật khẩu rỗng và bị từ chối (`ER_ACCESS_DENIED_ERROR`), **dù `.env` có đúng mật khẩu**. Phát hiện khi tự kiểm tra lại đúng quy trình README trên máy sạch. Sửa bằng cờ có sẵn của Node 20.6+/24 (`node --env-file=.env src/server.js`), không thêm phụ thuộc mới.
+- **Vì sao:** Mục "API đọc/ghi trực tiếp MySQL" trong README mục 6 trước đó còn "Chưa xong"; migration và seed đã sẵn sàng nhưng chưa có tầng đọc/ghi thật. Lỗi `.env` không được nạp chỉ lộ ra khi thử chạy `npm start` thật với MySQL, không thấy được khi chỉ đọc code.
+- **Ảnh hưởng:** `src/repositories/mysql/` (mới), `src/repositories/in-memory.js`, `src/services/*`, `src/routes/*.routes.js`, `src/server.js`, `tests/warranty.test.js`, `package.json` (thêm `mysql2`, sửa script `start`), `README.md` (mục 2, 3, 4, 6), `.env.example`.
