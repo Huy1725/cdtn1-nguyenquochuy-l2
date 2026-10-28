@@ -22,18 +22,18 @@ export class ClassifyService {
     this.categories = categoryRepository;
   }
 
-  list() {
+  async list() {
     return this.categories.list();
   }
 
-  exists(categoryId) {
-    return this.categories.findById(categoryId) !== null;
+  async exists(categoryId) {
+    return (await this.categories.findById(categoryId)) !== null;
   }
 
-  suggest(issueDesc) {
+  async suggest(issueDesc) {
     const text = normalize(String(issueDesc ?? ""));
     const match = KEYWORDS.find(([, words]) => words.some((word) => text.includes(word)));
     const categoryId = match ? match[0] : FALLBACK_CATEGORY_ID;
-    return this.exists(categoryId) ? categoryId : null;
+    return (await this.exists(categoryId)) ? categoryId : null;
   }
 }

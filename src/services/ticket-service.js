@@ -16,21 +16,20 @@ export class TicketService {
     this.clock = clock;
   }
 
-  create(input) {
-    if (!this.customers.findById(input.customer_id)) {
+  async create(input) {
+    if (!(await this.customers.findById(input.customer_id))) {
       throw invalidReference("customer_id", "Khach hang khong ton tai");
     }
     let categoryId = input.category_id ?? null;
     if (categoryId === null) {
-      categoryId = this.classifier.suggest(input.issue_desc);
-    } else if (!this.classifier.exists(categoryId)) {
+      categoryId = await this.classifier.suggest(input.issue_desc);
+    } else if (!(await this.classifier.exists(categoryId))) {
       throw invalidReference("category_id", "Nhom su co khong ton tai");
     }
-    const device = this.#resolveDevice(input);
+    const device = await this.#resolveDevice(input);
 
     const receivedAt = this.clock();
-    const saved = this.tickets.save({
-      ticket_code: `BH-${String(this.tickets.nextSequence()).padStart(6, "0")}/${receivedAt.getUTCFullYear()}`,
+    const saved = await this.tickets.save({
       customer_id: input.customer_id,
       device_id: device.device_id,
       category_id: categoryId,
@@ -41,7 +40,7 @@ export class TicketService {
       due_date: calculateDueDate(receivedAt, input.priority).toISOString()
     });
     const note = input.external_device ? `Thiet bi ngoai - nguon goc: ${input.source_note}` : null;
-    this.tickets.appendStatusLog(saved.ticket_id, {
+    await this.tickets.appendStatusLog(saved.ticket_id, {
       from_status: null,
       to_status: "MOI",
       note,
@@ -50,34 +49,34 @@ export class TicketService {
     return this.#detail(saved, device);
   }
 
-  list({ status, page, size }) {
+  async list({ status, page, size }) {
     return this.tickets.list({ status, page, size });
   }
 
-  get(id) {
-    const ticket = this.tickets.findById(id);
+  async get(id) {
+    const ticket = await this.tickets.findById(id);
     if (!ticket) throw notFound();
-    return this.#detail(ticket, this.customers.findDeviceById(ticket.device_id));
+    return this.#detail(ticket, await this.customers.findDeviceById(ticket.device_id));
   }
 
   // QT-13: huy phieu la doi status sang HUY + ghi log, khong xoa du lieu.
-  changeStatus(id, { status, note = null, changed_by: changedBy }) {
-    const ticket = this.tickets.findById(id);
+  async changeStatus(id, { status, note = null, changed_by: changedBy }) {
+    const ticket = await this.tickets.findById(id);
     if (!ticket) throw notFound();
-    if (ticket.status === status) return this.#detail(ticket, this.customers.findDeviceById(ticket.device_id));
-    const updated = this.tickets.save({ ...ticket, status });
-    this.tickets.appendStatusLog(updated.ticket_id, {
+    if (ticket.status === status) return this.#detail(ticket, await this.customers.findDeviceById(ticket.device_id));
+    const updated = await this.tickets.save({ ...ticket, status });
+    await this.tickets.appendStatusLog(updated.ticket_id, {
       from_status: ticket.status,
       to_status: status,
       note,
       changed_by: changedBy ?? DEFAULT_STAFF_ID
     });
-    return this.#detail(updated, this.customers.findDeviceById(updated.device_id));
+    return this.#detail(updated, await this.customers.findDeviceById(updated.device_id));
   }
 
-  #resolveDevice(input) {
+  async #resolveDevice(input) {
     if (input.external_device) {
-      if (this.customers.findDeviceBySerial(input.serial_no)) {
+      if (await this.customers.findDeviceBySerial(input.serial_no)) {
         throw new AppError("DEVICE_EXISTS", "Serial da ton tai trong he thong", {
           serial_no: "Serial da ton tai trong he thong"
         });
@@ -89,7 +88,7 @@ export class TicketService {
         warranty_months: null
       });
     }
-    const device = this.customers.findDeviceById(input.device_id);
+    const device = await this.customers.findDeviceById(input.device_id);
     if (!device || device.customer_id !== input.customer_id) {
       throw invalidReference("device_id", "Thiet bi khong thuoc khach hang nay");
     }
@@ -97,12 +96,12 @@ export class TicketService {
   }
 
   // Trang thai bao hanh duoc tinh tu thiet bi, khong luu trong bang ticket.
-  #detail(ticket, device) {
+  async #detail(ticket, device) {
     return {
       ...ticket,
       serial_no: device?.serial_no ?? null,
       warranty_status: warrantyStatus(device?.purchase_date, device?.warranty_months, ticket.received_at),
-      status_log: this.tickets.statusLog(ticket.ticket_id)
+      status_log: await this.tickets.statusLog(ticket.ticket_id)
     };
   }
 }

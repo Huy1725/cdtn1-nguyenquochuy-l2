@@ -10,23 +10,23 @@ export function ticketRoutes({ ticketService }) {
     {
       method: "POST",
       path: "/api/tickets",
-      handle: async ({ json }) => ({ status: 201, body: ticketService.create(validateCreateTicket(await json())) })
+      handle: async ({ json }) => ({ status: 201, body: await ticketService.create(validateCreateTicket(await json())) })
     },
     {
       method: "GET",
       path: "/api/tickets",
-      handle: ({ query }) => ({ body: ticketService.list(validateListQuery(Object.fromEntries(query))) })
+      handle: async ({ query }) => ({ body: await ticketService.list(validateListQuery(Object.fromEntries(query))) })
     },
     {
       method: "GET",
       path: "/api/tickets/:id",
-      handle: ({ params }) => ({ body: ticketService.get(validateTicketId(params.id)) })
+      handle: async ({ params }) => ({ body: await ticketService.get(validateTicketId(params.id)) })
     },
     {
       method: "PATCH",
       path: "/api/tickets/:id/status",
       handle: async ({ params, json }) => ({
-        body: ticketService.changeStatus(validateTicketId(params.id), validateStatusChange(await json()))
+        body: await ticketService.changeStatus(validateTicketId(params.id), validateStatusChange(await json()))
       })
     }
   ];
