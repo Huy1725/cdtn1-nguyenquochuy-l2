@@ -22,7 +22,7 @@ cp .env.example .env                 # 2. tạo file cấu hình (Windows PowerS
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS warranty_l2 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
                                       # 3. tao database (chi can chay 1 lan)
 mysql -u root -p warranty_l2 < migrations/001_initial.sql   # 4. dung bang, chay lai duoc, khong loi
-mysql -u root -p warranty_l2 < seeds/001_demo.sql           # 5. du lieu mau, chay lai khong nhan doi
+mysql -u root -p warranty_l2 < seeds/001_demo.sql           # 5. du lieu mau (~100 khach hang), chay lai khong nhan doi
 npm test                             # 6. chay bo kiem thu (dung repository bo nho, KHONG can MySQL, phai PASS het)
 npm start                            # 7. chay API tai http://localhost:3000 (doc/ghi MySQL that)
 npm run dev                          # 8. (terminal thu hai) chay giao dien tai http://localhost:5173
