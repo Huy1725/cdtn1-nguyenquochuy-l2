@@ -1,7 +1,7 @@
 import mysql from "mysql2/promise";
 
 // Mot pool dung chung cho ca ung dung; doc config tu bien moi truong (xem .env.example).
-export function createPool() {
+export function createPool(overrides = {}) {
   return mysql.createPool({
     host: process.env.DB_HOST ?? "localhost",
     port: Number(process.env.DB_PORT ?? 3306),
@@ -10,7 +10,8 @@ export function createPool() {
     database: process.env.DB_NAME ?? "warranty_l2",
     dateStrings: true, // doc DATE/DATETIME ve dang chuoi, tu quan ly UTC bang tay, tranh lech mui gio
     waitForConnections: true,
-    connectionLimit: 10
+    connectionLimit: 10,
+    ...overrides
   });
 }
 
