@@ -67,9 +67,13 @@ export class MysqlTicketRepository {
 
   // Nhat ky chi them moi, khong co ham sua/xoa (QT-13, NFR3).
   async appendStatusLog(ticketId, entry) {
+    // Ghi changed_at tuong minh (gio UTC tu service), khong dua vao DEFAULT CURRENT_TIMESTAMP (BUG-09).
     await this.pool.query(
-      "INSERT INTO ticket_status_log (ticket_id, from_status, to_status, note, changed_by) VALUES (?,?,?,?,?)",
-      [Number(ticketId), entry.from_status ?? null, entry.to_status, entry.note ?? null, entry.changed_by]
+      "INSERT INTO ticket_status_log (ticket_id, from_status, to_status, note, changed_by, changed_at) VALUES (?,?,?,?,?,?)",
+      [
+        Number(ticketId), entry.from_status ?? null, entry.to_status, entry.note ?? null, entry.changed_by,
+        toSqlDateTime(entry.changed_at ?? new Date().toISOString())
+      ]
     );
   }
 

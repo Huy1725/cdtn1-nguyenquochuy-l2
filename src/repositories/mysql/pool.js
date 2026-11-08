@@ -2,7 +2,7 @@ import mysql from "mysql2/promise";
 
 // Mot pool dung chung cho ca ung dung; doc config tu bien moi truong (xem .env.example).
 export function createPool(overrides = {}) {
-  return mysql.createPool({
+  const pool = mysql.createPool({
     host: process.env.DB_HOST ?? "localhost",
     port: Number(process.env.DB_PORT ?? 3306),
     user: process.env.DB_USER ?? "root",
@@ -13,6 +13,12 @@ export function createPool(overrides = {}) {
     connectionLimit: 10,
     ...overrides
   });
+  // Moi phien ket noi dung gio UTC, de cac cot DEFAULT CURRENT_TIMESTAMP (vd customer.created_at)
+  // khong phu thuoc mui gio cua may chu MySQL (BUG-09: may cai MySQL theo gio VN lech 7 tieng).
+  pool.on("connection", (connection) => {
+    connection.query("SET time_zone = '+00:00'");
+  });
+  return pool;
 }
 
 // Luu moi DATETIME trong CSDL theo gio UTC duoi dang chuoi "wall-clock" (xem thay-doi-thiet-ke.md).

@@ -40,11 +40,13 @@ export class TicketService {
       due_date: calculateDueDate(receivedAt, input.priority).toISOString()
     });
     const note = input.external_device ? `Thiet bi ngoai - nguon goc: ${input.source_note}` : null;
+    // Thoi diem nhat ky lay tu CUNG dong ho voi received_at, khong de CSDL tu dien (BUG-09).
     await this.tickets.appendStatusLog(saved.ticket_id, {
       from_status: null,
       to_status: "MOI",
       note,
-      changed_by: input.changed_by ?? DEFAULT_STAFF_ID
+      changed_by: input.changed_by ?? DEFAULT_STAFF_ID,
+      changed_at: receivedAt.toISOString()
     });
     return this.#detail(saved, device);
   }
@@ -69,7 +71,8 @@ export class TicketService {
       from_status: ticket.status,
       to_status: status,
       note,
-      changed_by: changedBy ?? DEFAULT_STAFF_ID
+      changed_by: changedBy ?? DEFAULT_STAFF_ID,
+      changed_at: this.clock().toISOString()
     });
     return this.#detail(updated, await this.customers.findDeviceById(updated.device_id));
   }

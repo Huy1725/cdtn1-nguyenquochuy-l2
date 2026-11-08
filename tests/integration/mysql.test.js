@@ -96,3 +96,16 @@ test("TC-10 [happy] US7/QT-13: thoi diem ghi nhat ky trang thai khop thoi diem n
     await pool.end();
   }
 });
+
+test("[regression] BUG-09: moi ket noi cua pool dung gio UTC, CURRENT_TIMESTAMP khop gio UTC", async () => {
+  const pool = createPool({ database: TEST_DB, connectionLimit: 2 });
+  try {
+    const [[row]] = await pool.query(
+      "SELECT @@session.time_zone AS tz, TIMESTAMPDIFF(SECOND, UTC_TIMESTAMP(), CURRENT_TIMESTAMP) AS diff"
+    );
+    assert.equal(row.tz, "+00:00");
+    assert.equal(Number(row.diff), 0);
+  } finally {
+    await pool.end();
+  }
+});
