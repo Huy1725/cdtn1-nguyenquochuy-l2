@@ -8,12 +8,13 @@ const KEYWORDS = [
 ];
 const FALLBACK_CATEGORY_ID = 6;
 
+// Ha chu thuong TRUOC roi moi doi "đ" -> "d"; lam nguoc lai thi "Đ" hoa lot qua (BUG-11).
 function normalize(text) {
   return text
+    .toLowerCase()
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
-    .replace(/đ/g, "d")
-    .toLowerCase();
+    .replace(/đ/g, "d");
 }
 
 // De xuat nhom su co theo tu khoa trong mo ta loi (goi dong bo tu TicketService).
