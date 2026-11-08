@@ -76,3 +76,21 @@ Ghi lại các lỗi thật sự phát sinh trong quá trình làm dự án (kh�
 ---
 
 **Ghi chú:** BUG-01 → BUG-05 phát hiện trong giai đoạn dựng khung kiến trúc BT2 (Buổi 8–12); BUG-06, BUG-07 phát hiện khi hoàn thiện lớp MySQL repository và tự kiểm tra quy trình README trước khi nộp bài.
+
+---
+
+# Bài tập 3 — Bug phát hiện bởi test case (mẫu bảy dòng)
+
+Mức độ đo bằng **tác động tới người dùng**, không phải độ khó sửa: **Critical** = hệ thống không dùng được,
+HOẶC dữ liệu bị sai, HOẶC có lỗ hổng bảo mật · **Major** = chức năng quan trọng chạy sai nhưng vẫn có cách
+làm tiếp · **Minor** = còn lại.
+
+## BUG-08 — Không tạo được phiếu bảo hành nào trên MySQL thật
+
+1. **Mã và mức độ:** BUG-08 · **CRITICAL** — hệ thống không dùng được: chức năng chính của luồng L2 (tạo phiếu) luôn lỗi khi chạy với MySQL.
+2. **Phát hiện bởi:** TC-10 (integration, MySQL thật).
+3. **Triệu chứng:** Bấm tạo phiếu, API trả `500 {"code":"INTERNAL_ERROR"}`; không phiếu nào được lưu. Test in ra `Data too long for column 'ticket_code' at row 1`.
+4. **Cách tái lập:** Dựng CSDL bằng `migrations/` + `seeds/` → `npm start` → `POST /api/tickets` với khách `0901234567`, thiết bị đầu tiên, `issue_desc` bất kỳ → nhận 500. (Hoặc `npm run test:integration` → TC-10 FAIL.)
+5. **Nguyên nhân:** `MysqlTicketRepository.save()` chèn phiếu với mã tạm `BH-TMP-<Date.now()>-<6 ký tự ngẫu nhiên>` (27 ký tự) rồi mới đổi sang mã thật theo `ticket_id`; nhưng cột `ticket.ticket_code` chỉ là `VARCHAR(20)` nên MySQL (strict mode) từ chối câu `INSERT`. Test API cũ chạy trên repository bộ nhớ (không giới hạn độ dài) nên không bắt được.
+6. **Cách sửa:** `src/repositories/mysql/ticket.repository.js` — mã tạm đổi thành `T` + 18 ký tự hex từ `crypto.randomBytes(9)` = 19 ký tự, vừa cột và vẫn không trùng; ghi chú ràng buộc độ dài ngay cạnh dòng sinh mã.
+7. **Link commit và xác nhận:** _(điền link commit sau khi push)_ — chạy lại TC-10: lỗi `Data too long` không còn, phiếu tạo được và nhận mã `BH-000001/2026`. TC-10 vẫn FAIL nhưng vì một lỗi khác (thời điểm nhật ký lệch 420 phút) → ghi thành BUG-09.

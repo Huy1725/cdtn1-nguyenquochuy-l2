@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { fromSqlDateTime, toSqlDateTime } from "./pool.js";
 
 function fromRow(row) {
@@ -33,7 +34,8 @@ export class MysqlTicketRepository {
       );
       return this.findById(ticket.ticket_id);
     }
-    const placeholder = `BH-TMP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    // Ma tam phai vua cot ticket_code VARCHAR(20): "T" + 18 ky tu hex = 19 ky tu (BUG-08).
+    const placeholder = `T${randomBytes(9).toString("hex")}`;
     const [result] = await this.pool.query(
       "INSERT INTO ticket (ticket_code, customer_id, device_id, category_id, issue_desc, priority, status, received_at, due_date) VALUES (?,?,?,?,?,?,?,?,?)",
       [
