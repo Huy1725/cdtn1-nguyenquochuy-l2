@@ -46,7 +46,7 @@ sang HTTP; chạy với repository bộ nhớ nên vẫn nhanh (< 50 ms/test) v�
    luồng đúng; US5 có hai TC biên ở hai bên ranh giới.
 3. Không còn bug mức Critical nào đang mở trong `docs/bug-log.md`.
 4. Mọi TC dữ liệu sai / bảo mật: đúng mã HTTP **và** đúng mã lỗi nghiệp vụ, thân phản hồi không chứa stack trace.
-5. Chạy migration + seed lần hai: số bản ghi của cả 5 bảng không đổi.
+5. Chạy migration + seed lần hai: số bản ghi của mọi bảng không đổi.
 
 ## 4. Môi trường và dữ liệu thử
 

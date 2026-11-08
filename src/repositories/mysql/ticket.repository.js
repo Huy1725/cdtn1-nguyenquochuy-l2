@@ -37,10 +37,11 @@ export class MysqlTicketRepository {
     // Ma tam phai vua cot ticket_code VARCHAR(20): "T" + 18 ky tu hex = 19 ky tu (BUG-08).
     const placeholder = `T${randomBytes(9).toString("hex")}`;
     const [result] = await this.pool.query(
-      "INSERT INTO ticket (ticket_code, customer_id, device_id, category_id, issue_desc, priority, status, received_at, due_date) VALUES (?,?,?,?,?,?,?,?,?)",
+      "INSERT INTO ticket (ticket_code, customer_id, device_id, category_id, issue_desc, priority, status, received_at, due_date, received_by) VALUES (?,?,?,?,?,?,?,?,?,?)",
       [
         placeholder, ticket.customer_id, ticket.device_id, ticket.category_id, ticket.issue_desc,
-        ticket.priority, ticket.status, toSqlDateTime(ticket.received_at), toSqlDateTime(ticket.due_date)
+        ticket.priority, ticket.status, toSqlDateTime(ticket.received_at), toSqlDateTime(ticket.due_date),
+        ticket.received_by
       ]
     );
     const ticketId = result.insertId;

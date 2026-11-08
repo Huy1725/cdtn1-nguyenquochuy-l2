@@ -9,6 +9,7 @@ import { createApplication } from "../../src/app.js";
 import { createPool } from "../../src/repositories/mysql/pool.js";
 import { MysqlCategoryRepository } from "../../src/repositories/mysql/category.repository.js";
 import { MysqlCustomerRepository } from "../../src/repositories/mysql/customer.repository.js";
+import { MysqlStaffRepository } from "../../src/repositories/mysql/staff.repository.js";
 import { MysqlTicketRepository } from "../../src/repositories/mysql/ticket.repository.js";
 import { validateCreateTicket } from "../../src/validators/ticket.validator.js";
 
@@ -16,7 +17,7 @@ const TEST_DB = process.env.TEST_DB_NAME ?? "warranty_l2_test";
 if (!/^\w+$/.test(TEST_DB)) throw new Error("TEST_DB_NAME chi duoc gom chu, so, dau gach duoi");
 
 const ROOT = new URL("../../", import.meta.url);
-const TABLES = ["customer", "device", "issue_category", "ticket", "ticket_status_log"];
+const TABLES = ["customer", "device", "issue_category", "staff", "ticket", "ticket_status_log"];
 
 async function sqlFiles(folderName) {
   const folder = new URL(`${folderName}/`, ROOT);
@@ -64,6 +65,7 @@ test("TC-12 [reproducibility] chay lai migration + seed lan hai: khong loi, khon
   assert.equal(first.customer, 101);
   assert.equal(first.device, 139);
   assert.equal(first.issue_category, 6);
+  assert.equal(first.staff, 2);
   await runMigrationsAndSeeds(admin);
   const second = await countRows(admin);
   assert.deepEqual(second, first);
@@ -75,7 +77,8 @@ test("TC-10 [happy] US7/QT-13: thoi diem ghi nhat ky trang thai khop thoi diem n
     const app = createApplication({
       customerRepository: new MysqlCustomerRepository(pool),
       ticketRepository: new MysqlTicketRepository(pool),
-      categoryRepository: new MysqlCategoryRepository(pool)
+      categoryRepository: new MysqlCategoryRepository(pool),
+      staffRepository: new MysqlStaffRepository(pool)
     });
     const customer = await app.customerRepository.findByPhone("0901234567");
     const [device] = await app.customerRepository.listDevices(customer.customer_id);
@@ -84,7 +87,9 @@ test("TC-10 [happy] US7/QT-13: thoi diem ghi nhat ky trang thai khop thoi diem n
       device_id: device.device_id,
       issue_desc: "Man hinh bi soc, cam ung loan",
       priority: "CAO"
-    }));
+    }), { staff_id: 1 });
+    assert.equal(ticket.received_by, 1);
+    assert.equal(ticket.status_log[0].changed_by_name, "Nguyen Van An");
     const receivedAt = new Date(ticket.received_at).getTime();
     const loggedAt = new Date(ticket.status_log[0].changed_at).getTime();
     const gapMinutes = Math.abs(loggedAt - receivedAt) / 60_000;

@@ -2,8 +2,12 @@ import { createApplication } from "./app.js";
 import { createMysqlRepositories } from "./repositories/mysql/index.js";
 
 // npm start doc/ghi MySQL that (migrations/ + seeds/). Kiem thu KHONG dung file nay,
-// xem tests/warranty.test.js - luon chay bang repository bo nho, khong can MySQL.
+// xem tests/unit/ - luon chay bang repository bo nho, khong can MySQL.
 async function main() {
+  // Khoa ky token phai do nguoi trien khai dat; thieu hoac qua ngan thi tu choi khoi dong.
+  if ((process.env.JWT_SECRET ?? "").length < 32) {
+    throw new Error("JWT_SECRET trong .env phai co it nhat 32 ky tu (xem .env.example)");
+  }
   const port = Number(process.env.PORT ?? 3000);
   const { pool, ...repositories } = await createMysqlRepositories();
   const app = createApplication(repositories);

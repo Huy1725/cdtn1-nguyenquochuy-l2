@@ -22,17 +22,30 @@ cp .env.example .env                 # 2. tạo file cấu hình (Windows PowerS
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS warranty_l2 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
                                       # 3. tao database (chi can chay 1 lan)
 mysql -u root -p warranty_l2 < migrations/001_initial.sql   # 4. dung bang, chay lai duoc, khong loi
-mysql -u root -p warranty_l2 < seeds/001_demo.sql           # 5. du lieu mau (~100 khach hang), chay lai khong nhan doi
-npm test                             # 6. chay bo kiem thu (dung repository bo nho, KHONG can MySQL, phai PASS het)
-npm start                            # 7. chay API tai http://localhost:3000 (doc/ghi MySQL that)
-npm run dev                          # 8. (terminal thu hai) chay giao dien tai http://localhost:5173
+mysql -u root -p warranty_l2 < migrations/002_staff_auth.sql  # 5. bang nhan vien + nguoi tiep nhan phieu
+mysql -u root -p warranty_l2 < seeds/001_demo.sql           # 6. du lieu mau (~100 khach hang), chay lai khong nhan doi
+mysql -u root -p warranty_l2 < seeds/002_staff.sql          # 7. hai tai khoan nhan vien demo (bang duoi)
+npm test                             # 8. chay bo kiem thu (dung repository bo nho, KHONG can MySQL, phai PASS het)
+npm start                            # 9. chay API tai http://localhost:3000 (doc/ghi MySQL that)
+npm run dev                          # 10. (terminal thu hai) chay giao dien tai http://localhost:5173
 ```
+
+Tài khoản demo (mật khẩu chỉ lưu dạng băm scrypt trong CSDL; chỉ dùng để chạy thử):
+
+| Tên đăng nhập | Mật khẩu | Họ tên |
+|---|---|---|
+| `nv01` | `matkhau01` | Nguyen Van An |
+| `nv02` | `matkhau02` | Tran Thi Binh |
+
+Mọi API dưới `/api` (trừ `POST /api/auth/login`) cần header `Authorization: Bearer <token>`.
+Chỉ nhân viên đã tiếp nhận phiếu mới được đổi trạng thái phiếu đó (người khác nhận `403`).
 
 Kiểm tra hệ thống chạy đúng:
 
 ```bash
-curl "http://localhost:3000/api/customers?phone=0901234567"   # trả hồ sơ Nguyen AB
-curl -X POST http://localhost:3000/api/tickets -H "content-type: application/json" -d "{\"customer_id\":1,\"priority\":\"CAO\"}"   # 400, nêu rõ trường thiếu
+curl http://localhost:3000/api/tickets                     # 401: chưa đăng nhập
+curl -X POST http://localhost:3000/api/auth/login -H "content-type: application/json" -d "{\"username\":\"nv01\",\"password\":\"matkhau01\"}"   # 200, trả token
+curl "http://localhost:3000/api/customers?phone=0901234567" -H "authorization: Bearer <token>"   # trả hồ sơ Nguyen AB
 ```
 
 > **Lưu ý trung thực:** `npm start` đọc/ghi MySQL thật qua `src/repositories/mysql/` (không còn dùng dữ liệu bộ nhớ). Riêng `npm test` vẫn dùng `src/repositories/in-memory.js` để không phụ thuộc MySQL khi chấm bài — xem mục 5.
@@ -108,5 +121,5 @@ Bộ kiểm thử (`tests/warranty.test.js`) dùng repository bộ nhớ và g�
 - [x] Xây dựng API và lớp nghiệp vụ cho module Tiếp nhận yêu cầu (Buổi 8–10).
 - [x] Viết Unit Test cho lớp Service xử lý các quy tắc QT-01, QT-04, QT-13 (Buổi 10–12).
 - [x] Repository MySQL thật cho `npm start` (`src/repositories/mysql/`); `npm test` vẫn dùng bộ nhớ.
-- [ ] Đăng nhập (JWT) — chưa hiện thực.
+- [x] Đăng nhập nhân viên (token HS256, mật khẩu băm scrypt) và quy tắc chủ phiếu — sửa BUG-10 (Bài tập 3).
 - [ ] Dockerfile / docker-compose — thuộc Bài tập 3.

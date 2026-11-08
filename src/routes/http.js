@@ -5,7 +5,10 @@ const STATUS_BY_CODE = {
   VALIDATION_FAILED: 400,
   INVALID_JSON: 400,
   NOT_FOUND: 404,
-  INVALID_REFERENCE: 422
+  INVALID_REFERENCE: 422,
+  UNAUTHORIZED: 401,
+  INVALID_CREDENTIALS: 401,
+  FORBIDDEN: 403
 };
 
 export function statusForCode(code) {
@@ -35,11 +38,17 @@ export async function readJson(request) {
   }
 }
 
+// "Authorization: Bearer <token>" -> "<token>"; khong co hoac sai dang -> null.
+export function bearerToken(request) {
+  const match = /^Bearer\s+(\S+)$/i.exec(request.headers.authorization ?? "");
+  return match ? match[1] : null;
+}
+
 export function send(response, status, payload, corsOrigin) {
   response.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
     "access-control-allow-origin": corsOrigin,
-    "access-control-allow-headers": "content-type",
+    "access-control-allow-headers": "content-type, authorization",
     "access-control-allow-methods": "GET,POST,PATCH,DELETE,OPTIONS"
   });
   response.end(JSON.stringify(payload));

@@ -15,7 +15,7 @@ export function validateCreateTicket(input) {
       priority,
       issue_desc: requiredString(fields, input, "issue_desc", 2000),
       category_id: positiveInt(fields, input?.category_id, "category_id", { required: false }),
-      changed_by: positiveInt(fields, input?.changed_by, "changed_by", { required: false }),
+      // Khong nhan changed_by/received_by tu client: nguoi thuc hien lay tu token (BUG-10).
       external_device: external
     };
     // US3 AC2: thiet bi ngoai bat buoc nhap tay serial va ghi chu nguon goc.
@@ -34,8 +34,7 @@ export function validateStatusChange(input) {
     if (!TICKET_STATUSES.includes(input?.status)) fields.status = "Trang thai khong hop le";
     return {
       status: input?.status,
-      note: optionalString(fields, input, "note", 1000),
-      changed_by: positiveInt(fields, input?.changed_by, "changed_by", { required: false })
+      note: optionalString(fields, input, "note", 1000)
     };
   });
 }

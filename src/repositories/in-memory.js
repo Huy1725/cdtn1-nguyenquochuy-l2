@@ -83,6 +83,36 @@ export class InMemoryCategoryRepository {
   }
 }
 
+// Cung hai tai khoan demo voi seeds/002_staff.sql (nv01/matkhau01, nv02/matkhau02), chi luu chuoi bam.
+export const DEMO_STAFF = Object.freeze([
+  {
+    staff_id: 1, username: "nv01", full_name: "Nguyen Van An", is_active: true,
+    password_hash: "scrypt$487afa4ce4a383db5731aaa566676272$16e2015b24f79cd12e9e06d401b3180f4f33ffc7d24bafc9d16864702a407ed75c73f669eb88a6504c624b81dc4849478c22153ed20f4c79c9caddd67db53e29"
+  },
+  {
+    staff_id: 2, username: "nv02", full_name: "Tran Thi Binh", is_active: true,
+    password_hash: "scrypt$fedd10775456230f6693894c2c6d036b$656836eff929ed1192c38e2fc5e8c7716714f7ee55a7ef5c457d412fff63a222eb25a8ed0f2e00a4242ac53c28fda45fa859c700243a37f1561dc816e652399f"
+  }
+]);
+
+export class InMemoryStaffRepository {
+  #staff = new Map();
+
+  constructor(staff = DEMO_STAFF) {
+    for (const member of staff) this.#staff.set(member.staff_id, Object.freeze({ ...member }));
+  }
+
+  async findByUsername(username) {
+    const member = [...this.#staff.values()].find((item) => item.username === username);
+    return member ? structuredClone(member) : null;
+  }
+
+  async findById(id) {
+    const member = this.#staff.get(Number(id));
+    return member ? structuredClone(member) : null;
+  }
+}
+
 export class InMemoryTicketRepository {
   #tickets = new Map();
   #logs = new Map();

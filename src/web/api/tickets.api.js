@@ -10,7 +10,7 @@ export const ticketsApi = {
   categories: () => request("/api/categories"),
   create: (data) => request("/api/tickets", {
     method: "POST",
-    body: JSON.stringify({ changed_by: 1, ...data })
+    body: JSON.stringify(data)
   }),
   list: (params = {}) => {
     const query = new URLSearchParams({ page: "1", size: "100", ...params });
@@ -19,6 +19,6 @@ export const ticketsApi = {
   get: (id) => request(`/api/tickets/${id}`),
   updateStatus: (id, status, note) => request(`/api/tickets/${id}/status`, {
     method: "PATCH",
-    body: JSON.stringify({ status, note, changed_by: 1 })
+    body: JSON.stringify({ status, note })
   })
 };

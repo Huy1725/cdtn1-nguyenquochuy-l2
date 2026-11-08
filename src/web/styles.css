@@ -63,6 +63,13 @@ hr { margin: 31px 0; border: 0; border-top: 1px solid #edf0f4; }
 .notice { padding: 12px 15px; margin: -12px 0 20px; border-radius: 7px; font-size: 13px; }
 .notice.success { color: #176b42; background: #eaf8f0; }
 .notice.error { color: #a52a48; background: #fff0f3; }
+.notice.info { margin: 0 0 18px; color: #475467; background: #f2f4f7; }
+.login-shell { display: grid; min-height: 100vh; place-items: center; padding: 24px; }
+.login-card { width: min(400px, 100%); padding: 34px 32px 30px; }
+.login-card h1 { margin: 28px 0 4px; font: 800 24px "Plus Jakarta Sans", sans-serif; color: #101828; }
+.login-card .subheading { margin: 0 0 24px; }
+.login-card .notice { margin: 0 0 18px; }
+.login-submit { width: 100%; margin-top: 4px; }
 .link-button { margin-left: 12px; padding: 0; border: 0; color: #a52a48; background: transparent; text-decoration: underline; }
 .field-error { color: #d92d20; font-size: 11px; font-weight: 400; }
 .toolbar { justify-content: space-between; margin-bottom: 18px; }
