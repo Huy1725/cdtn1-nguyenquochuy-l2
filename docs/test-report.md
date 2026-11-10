@@ -167,3 +167,12 @@ Làm đúng Deployment Guide trên thư mục trống: `git clone` repo từ Git
 Lần thử máy trắng đầu tiên (commit `ac860e3`) lộ lỗi BUG-12: ngay sau lệnh dựng `app` còn `health: starting` và `/health` bị từ chối kết nối;
 ảnh trước khi sửa: [blank-machine-before-fix.png](screenshots/blank-machine-before-fix.png). Xem [bug-log.md](bug-log.md).
 
+
+
+## 7. CI trên GitHub Actions
+
+File [.github/workflows/ci.yml](../.github/workflows/ci.yml) chạy mỗi lần `push` và `pull_request`: GitHub bật một máy Ubuntu sạch, dựng MySQL 8.0 tạm thời,
+rồi chạy `npm ci`, `npm run build`, `npm test`. Trước khi push, các bước này đã được chạy thử trên một bản clone sạch (không có `.env`): 34/34 PASS.
+Lần chạy đầu tiên trên GitHub (`CI #1`, commit `930fbdf`) **xanh, 44 giây**.
+
+![CI #1 xanh trên tab Actions](screenshots/ci-green.png)

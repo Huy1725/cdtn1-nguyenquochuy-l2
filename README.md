@@ -61,6 +61,8 @@ npm run dev                          # 10. (thay cho bước 9, khi sửa giao d
 
 Mọi API dưới `/api` (trừ `POST /api/auth/login`) cần header `Authorization: Bearer <token>`. Chỉ nhân viên đã tiếp nhận phiếu mới được đổi trạng thái phiếu đó (người khác nhận `403`). Tài liệu API: [docs/api-docs/README.md](docs/api-docs/README.md).
 
+Kiểm thử tự động (CI): mỗi lần push, GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)) chạy `npm ci`, `npm run build` và `npm test` trên máy Ubuntu sạch với MySQL 8.0; kết quả ở tab **Actions** của repo.
+
 ## 4. Cấu trúc thư mục
 
 ```text
@@ -112,6 +114,7 @@ cdtn1-nguyenquochuy-l2/
 │       ├── pages/                 #   4 màn hình: đăng nhập, tạo phiếu, theo dõi phiếu, chi tiết phiếu
 │       └── components/            #   Layout, Field, ErrorNotice, nhãn hiển thị
 ├── Dockerfile, docker-compose.yml, .dockerignore   # Đóng gói: image Node (API + giao diện) và MySQL
+├── .github/workflows/ci.yml       # CI: GitHub Actions chạy build + npm test (34 test) mỗi lần push
 ├── tests/
 │   ├── unit/warranty.test.js      # TC-01…09, TC-11 + 15 test hồi quy (repository bộ nhớ, không cần MySQL)
 │   ├── unit/packaging.test.js     # 5 test hồi quy: /health, giao diện tĩnh, cấu hình, log lỗi 500
