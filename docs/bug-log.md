@@ -1,6 +1,6 @@
 # Nhật ký lỗi (Bug Log)
 
-Hai phần: **Phần A — bốn bug do test case của Bài tập 3 phát hiện**, mỗi bug đủ **bảy dòng** (mã và mức độ · phát hiện bởi test case nào · triệu chứng · cách tái lập · nguyên nhân thật · cách sửa · link commit và xác nhận chạy lại), mỗi bug một commit riêng;
+Hai phần: **Phần A — bốn bug do test case của Bài tập 3 phát hiện và một bug do phép thử máy trắng phát hiện**, mỗi bug đủ **bảy dòng** (mã và mức độ · phát hiện bởi test case nào · triệu chứng · cách tái lập · nguyên nhân thật · cách sửa · link commit và xác nhận chạy lại), mỗi bug một commit riêng;
 **Phần B — bảy lỗi gặp trong giai đoạn BT2**, giữ nguyên định dạng bốn ý cũ (không dùng làm bug chấm Bài tập 3). Nhật ký này khác `thay-doi-thiet-ke.md`, vốn ghi các **thay đổi thiết kế**.
 
 Mức độ đo bằng **tác động tới người dùng**, không phải độ khó sửa: **Critical** = hệ thống không dùng được, HOẶC dữ liệu bị sai, HOẶC có lỗ hổng bảo mật · **Major** = chức năng quan trọng chạy sai nhưng vẫn có cách làm tiếp · **Minor** = còn lại.
@@ -11,6 +11,7 @@ Mức độ đo bằng **tác động tới người dùng**, không phải đ�
 | BUG-09 — nhật ký trạng thái lệch 7 giờ | Critical | TC-10 | [2b5a157](https://github.com/Huy1725/cdtn1-nguyenquochuy-l2/commit/2b5a157) |
 | BUG-10 — thiếu đăng nhập và kiểm soát truy cập | Critical | TC-08, TC-09 | [7071796](https://github.com/Huy1725/cdtn1-nguyenquochuy-l2/commit/7071796) |
 | BUG-11 — chữ "Đ" hoa phân loại sai nhóm sự cố | Major | TC-11 | [41a1eb0](https://github.com/Huy1725/cdtn1-nguyenquochuy-l2/commit/41a1eb0) |
+| BUG-12 — ngay sau `docker compose up -d` hệ thống chưa `healthy`, `/health` từ chối kết nối | Minor | phép thử máy trắng | _(điền link sau khi push)_ |
 
 ---
 
@@ -61,6 +62,16 @@ Mức độ đo bằng **tác động tới người dùng**, không phải đ�
 5. **Nguyên nhân:** `normalize()` trong `src/services/classify-service.js` bỏ dấu, rồi `replace(/đ/g, "d")`, **sau đó** mới `toLowerCase()`. Chữ `Đ` (U+0110) không tách được dấu bằng NFD và không khớp `/đ/` (chữ thường) nên lọt qua; đến `toLowerCase()` nó thành `đ` nhưng lúc đó không còn bước thay nào nữa → chuỗi thành `"may bi va đap manh"`, không chứa từ khóa `"va dap"`.
 6. **Cách sửa:** `src/services/classify-service.js` — đưa `toLowerCase()` lên **đầu** chuỗi xử lý, nên mọi `Đ` đã thành `đ` trước bước thay `đ → d`; ghi chú lý do thứ tự ngay trên hàm. Đã tìm trong toàn bộ `src/` — đây là chỗ chuẩn hóa chữ duy nhất.
 7. **Link commit và xác nhận:** https://github.com/Huy1725/cdtn1-nguyenquochuy-l2/commit/41a1eb0 — chạy lại `npm test`: TC-11 PASS (cả chữ thường và chữ HOA đều ra nhóm 3); TC-01 (phân loại "vao nuoc" → nhóm 3) vẫn PASS; 18/20, hai TC còn FAIL là TC-08, TC-09 thuộc BUG-10. Ảnh chạy lại: [run4-unit.png](screenshots/run4-unit.png); ảnh lỗi trước khi sửa: [run1-unit-fail.png](screenshots/run1-unit-fail.png).
+
+## BUG-12 — Ngay sau `docker compose up -d`, hệ thống chưa `healthy` và `/health` từ chối kết nối
+
+1. **Mã và mức độ:** BUG-12 · **MINOR** — hệ thống vẫn lên được, nhưng trong vài giây đầu các bước kiểm tra của Deployment Guide cho kết quả sai: người chấm chạy kiểm tra ngay có thể kết luận hệ thống không chạy (rủi ro cho mục cốt lõi C1).
+2. **Phát hiện bởi:** phép thử máy trắng (clone repo từ GitHub vào thư mục trống, chạy đúng hai lệnh, rồi chạy ngay Guide mục 5 bước 1–2) — không thuộc 12 test case.
+3. **Triệu chứng:** Ngay sau lệnh dựng, `docker compose ps` ghi `app … Up Less than a second (health: starting)` và `curl http://localhost:3000/health` trả `HTTP 000` (kết nối bị từ chối). Mười mấy giây sau mới `healthy` và `/health` trả `200`.
+4. **Cách tái lập:** `git clone` repo vào thư mục trống → `copy .env.example .env` → `docker compose up -d --build` → chạy ngay `docker compose ps` và `curl http://localhost:3000/health`.
+5. **Nguyên nhân:** `docker compose up -d` trả về ngay khi container `app` được **khởi động**, không chờ nó khỏe. Tiến trình Node cần khoảng một giây để mở cổng, và healthcheck của `app` chỉ chạy mỗi 10 giây (`interval: 10s`) nên trạng thái `starting` kéo dài cỡ chục giây. `depends_on: service_healthy` chỉ làm `app` chờ CSDL, không làm lệnh `up -d` chờ `app`.
+6. **Cách sửa:** `docker-compose.yml` — healthcheck của `app` chạy mỗi 3 giây (`interval: 3s`, `timeout: 3s`, `retries: 10`); `docs/deployment-guide.md` mục 5 ghi rõ "nếu thấy `health: starting`, đợi vài giây rồi chạy lại" và mục 6 thêm dòng xử lý. Không dùng `up --wait` hay `start_interval` vì không chạy trên Docker/Compose cũ, làm hỏng lệnh người chấm.
+7. **Link commit và xác nhận:** _(điền link commit sau khi push)_ — chạy lại phép thử máy trắng: đo được `app` thành `healthy` khoảng 5 giây sau khi `up -d` trả về (trước khi sửa: mười mấy giây). Ảnh trước khi sửa: [blank-machine-before-fix.png](screenshots/blank-machine-before-fix.png).
 
 ---
 

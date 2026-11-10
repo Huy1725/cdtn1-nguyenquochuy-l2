@@ -4,7 +4,7 @@ Sinh viên: Nguyễn Quốc Huy · 2374802010185 · Track SE · Bài tập 3
 
 Mỗi mục ghi **ĐÃ LÀM / CHƯA LÀM / KHÔNG ÁP DỤNG** kèm một dòng minh chứng và ảnh chụp lần chạy thật trong [screenshots/](screenshots/).
 Ảnh `sec-N.png` chụp từ cửa sổ terminal chạy đúng các lệnh ghi trong ảnh; ảnh không qua chỉnh sửa.
-Các lệnh ở mục 1, 2, 7 chạy trên mã nguồn tại commit `abd0463` (mã nguồn của tag `v1.0`; từ commit đó đến tag chỉ thêm/sửa tài liệu: `docs/` và `README.md`); các lệnh ở mục 4, 5, 6 chạy trên hệ thống dựng bằng
+Các lệnh ở mục 1, 2, 7 chạy trên mã nguồn tại commit `abd0463` (mã ứng dụng — `src/`, `tests/`, `migrations/`, `seeds/`, `Dockerfile` — không đổi từ commit đó đến tag `v1.0`; sau đó chỉ sửa `docker-compose.yml` (khoảng kiểm tra sức khỏe, BUG-12) và tài liệu); các lệnh ở mục 4, 5, 6 chạy trên hệ thống dựng bằng
 `docker compose up -d --build` (xem [deployment-guide.md](deployment-guide.md)).
 
 ## 1. Không có secret nào trong repo — ĐÃ LÀM

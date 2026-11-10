@@ -68,8 +68,8 @@ Run these in order. Each line shows the expected result.
 
 | # | Command or action | Expected result |
 |---|---|---|
-| 1 | `docker compose ps` | Both services `db` and `app` show **`(healthy)`** in the STATUS column |
-| 2 | `curl http://localhost:3000/health` | `{"status":"ok","db":"up"}` |
+| 1 | `docker compose ps` | Both services `db` and `app` show **`(healthy)`** in the STATUS column. Right after step 4 the app may still show `health: starting` — wait about 5 seconds and run it again |
+| 2 | `curl http://localhost:3000/health` | `{"status":"ok","db":"up"}` (connection refused in the first second after step 4 is normal; retry) |
 | 3 | `curl -i http://localhost:3000/api/tickets` | `HTTP/1.1 401` and `{"error":{"code":"UNAUTHORIZED",…}}` (the API is protected) |
 | 4 | Open `http://localhost:3000` in a browser, log in as `nv01` / `matkhau01` | The intake screen appears; searching phone `0901234567` shows "Nguyen AB" and device `A001` |
 | 5 | `docker compose exec app npm test` | Ends with `ℹ tests 34`, `ℹ pass 34`, `ℹ fail 0` (12 test cases + 22 regression tests, about 5 seconds) |
@@ -84,6 +84,7 @@ The tests create and drop their own scratch database `warranty_l2_test`; they ne
 | `Bind for 0.0.0.0:3000 failed: port is already allocated` | Another program uses port 3000 | Put `APP_PORT=3001` in `.env`, run `docker compose up -d` again, use `http://localhost:3001` |
 | App exits at start-up with `Thieu bien moi truong: …` | `.env` is missing a required variable | Compare `.env` with `.env.example`; read the log with `docker compose logs app --tail 50` |
 | After changing `DB_PASSWORD` the app cannot log in to MySQL, or tables are empty/missing | The database volume already exists, so MySQL ignores the new password and the init scripts do not run again | `docker compose down -v` then `docker compose up -d --build` (this deletes the database data) |
+| `app` shows `health: starting` right after `docker compose up` | The command returns as soon as the containers have started, not when the app is ready | Wait about 5 seconds, then run `docker compose ps` again |
 | `app` stays `unhealthy` | The database is unreachable | `docker compose ps`, then `docker compose logs db --tail 50`; `curl http://localhost:3000/health` returns 503 until the database is back |
 | `env file .env not found` | Step 3 was skipped | Run step 3 |
 

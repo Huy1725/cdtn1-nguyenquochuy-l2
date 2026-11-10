@@ -67,7 +67,7 @@ Từ lần chạy 5 (sau khi sửa BUG-10), mọi TC gọi API **đăng nhập `
 
 Mỗi TC có ảnh chụp lần chạy cuối ở [screenshots/](screenshots/), chụp từ lệnh `npm run tc -- TC-xx`: ảnh có tên lệnh (ở tên tab và dòng `> node scripts/run-tc.js TC-xx` do npm in),
 commit đang kiểm, tên TC kèm dấu ✔, và các dòng `thực tế:` in giá trị đọc từ kết quả thật. TC từng FAIL có thêm ảnh FAIL
-chụp trước khi sửa. Cột "Ảnh PASS" là ảnh **lần chạy 6** (commit `abd0463`, mã nguồn của tag `v1.0`). Cách chụp: mở một cửa sổ Windows Terminal mới, chạy đúng lệnh ghi trên tab,
+chụp trước khi sửa. Cột "Ảnh PASS" là ảnh **lần chạy 6** (commit `abd0463`; mã ứng dụng không đổi đến tag `v1.0`, xem `git diff --stat abd0463 v1.0 -- src tests`). Cách chụp: mở một cửa sổ Windows Terminal mới, chạy đúng lệnh ghi trên tab,
 chụp nội dung cửa sổ đó ngay khi lệnh chạy xong; ảnh không qua chỉnh sửa. Giảng viên có thể tự chạy lại bất kỳ TC nào bằng `npm run tc -- TC-xx`.
 
 | TC | Ảnh FAIL (trước khi sửa bug) | Ảnh PASS (lần chạy 6) |

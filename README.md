@@ -32,7 +32,7 @@ Rồi mở **http://localhost:3000** và đăng nhập bằng tài khoản demo 
 Kiểm tra hệ thống đã chạy đúng (kết quả mong đợi chi tiết ở [deployment guide](docs/deployment-guide.md) mục 5):
 
 ```bash
-docker compose ps                        # db và app đều (healthy)
+docker compose ps                        # db và app đều (healthy); nếu app còn "starting" thì đợi vài giây rồi chạy lại
 curl http://localhost:3000/health        # {"status":"ok","db":"up"}
 docker compose exec app npm test         # 34 test PASS (12 test case + 22 hồi quy)
 ```
