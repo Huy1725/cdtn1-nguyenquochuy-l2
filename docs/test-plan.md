@@ -34,15 +34,17 @@ tính theo ngày lịch giờ Việt Nam: 23:59 ngày cuối và 00:00 ngày k�
 
 Theo loại: luồng đúng 5 (TC-01, 02, 03, 10, 11) · giá trị biên 2 (TC-04 và TC-05, hai bên cùng một ranh giới) ·
 dữ liệu sai 2 (TC-06, 07) · bảo mật 2 (TC-08 A07, TC-09 A01) · tái lập 1 (TC-12).
-Ngoài 12 TC trên, `npm test` còn chạy 15 test hồi quy (đánh dấu `[regression]`): 10 từ BT2 và 5 thêm khi sửa
-bug (BUG-09, BUG-10 ×4) — để bug đã sửa không quay lại. Các test này không tính vào 12 TC của báo cáo.
+Ngoài 12 TC trên, `npm test` còn chạy 22 test hồi quy (đánh dấu `[regression]`): 10 từ BT2, 5 thêm khi sửa bug
+(BUG-09, BUG-10 ×4) và 7 thêm ở khâu đóng gói/bảo mật (`/health` ×2, giao diện tĩnh + path traversal, kiểm tra cấu hình,
+log lỗi 500, chuỗi injection trong SĐT, tên cột khi cập nhật khách) — để lỗi đã sửa không quay lại. Các test này không
+tính vào 12 TC của báo cáo.
 
 Tầng API nhiều hơn tỉ lệ gợi ý vì nhiều quy tắc chỉ thấy đủ khi đi qua cả validator, service và bảng dịch mã lỗi
 sang HTTP; chạy với repository bộ nhớ nên vẫn nhanh (< 50 ms/test) và không cần CSDL.
 
 ## 3. Tiêu chí thành công đo được
 
-1. 12/12 TC PASS ở lần chạy cuối, **chỉ bằng một lệnh `npm test`** (kèm 15 test hồi quy: tổng 27/27).
+1. 12/12 TC PASS ở lần chạy cuối, **chỉ bằng một lệnh `npm test`** (kèm 22 test hồi quy: tổng 34/34).
 2. Mỗi quy tắc nghiệp vụ đã hiện thực (QT-01, QT-04, QT-13, US5, US6, US7, quy tắc chủ sở hữu phiếu) có ít nhất một TC
    luồng đúng; US5 có hai TC biên ở hai bên ranh giới.
 3. Không còn bug mức Critical nào đang mở trong `docs/bug-log.md`.
@@ -57,8 +59,9 @@ sang HTTP; chạy với repository bộ nhớ nên vẫn nhanh (< 50 ms/test) v�
 - **Integration:** MySQL 8.0. Test tự `DROP` + `CREATE` CSDL riêng `warranty_l2_test` rồi chạy toàn bộ
   `migrations/` và `seeds/` (101 khách hàng, 139 thiết bị, 6 nhóm sự cố) — không đụng CSDL `warranty_l2` đang dùng.
 - **Lệnh chạy:**
-  - Toàn bộ bộ kiểm thử (12 TC + 15 hồi quy), một lệnh: `npm test` — cần MySQL đang chạy vì có 2 TC tích hợp.
-  - Không có MySQL: `npm run test:unit` (10 TC + 14 hồi quy) · chỉ phần MySQL: `npm run test:integration` (TC-10, TC-12).
+  - Toàn bộ bộ kiểm thử (12 TC + 22 hồi quy), một lệnh: `npm test` — cần MySQL đang chạy vì có 2 TC tích hợp.
+  - Trong Docker (không cần cài gì trên máy): `docker compose exec app npm test` — cùng 34 test, chạy trên CSDL của compose.
+  - Không có MySQL: `npm run test:unit` (10 TC + 20 hồi quy) · chỉ phần MySQL: `npm run test:integration` (TC-10, TC-12).
   - **Chạy lại đúng một TC** (giảng viên chọn ngẫu nhiên tại chỗ): `npm run tc -- TC-07` — tự tìm file test chứa TC đó.
     (Cú pháp `npm test -- --test-name-pattern=...` không lọc được vì tham số bị đưa vào test chứ không vào Node.)
 - **Minh chứng:** mỗi TC có đúng một ảnh chụp lần chạy cuối `docs/screenshots/TC-xx-pass.png`, chụp từ lệnh

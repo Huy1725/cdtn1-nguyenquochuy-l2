@@ -126,3 +126,37 @@ Mọi sai lệch so với thiết kế ban đầu (Bài tập 1) đều được
   - Sửa lỗi `package.json`: script `start` trước đó chỉ chạy `node src/server.js`, không có `dotenv` cũng không nạp `.env` bằng cách nào khác, nên `process.env.DB_PASSWORD` luôn là `undefined` — mọi lần kết nối MySQL đều dùng mật khẩu rỗng và bị từ chối (`ER_ACCESS_DENIED_ERROR`), **dù `.env` có đúng mật khẩu**. Phát hiện khi tự kiểm tra lại đúng quy trình README trên máy sạch. Sửa bằng cờ có sẵn của Node 20.6+/24 (`node --env-file=.env src/server.js`), không thêm phụ thuộc mới.
 - **Vì sao:** Mục "API đọc/ghi trực tiếp MySQL" trong README mục 6 trước đó còn "Chưa xong"; migration và seed đã sẵn sàng nhưng chưa có tầng đọc/ghi thật. Lỗi `.env` không được nạp chỉ lộ ra khi thử chạy `npm start` thật với MySQL, không thấy được khi chỉ đọc code.
 - **Ảnh hưởng:** `src/repositories/mysql/` (mới), `src/repositories/in-memory.js`, `src/services/*`, `src/routes/*.routes.js`, `src/server.js`, `tests/warranty.test.js`, `package.json` (thêm `mysql2`, sửa script `start`), `README.md` (mục 2, 3, 4, 6), `.env.example`.
+
+---
+
+## 15. Đăng nhập nhân viên và quy tắc chủ phiếu (sửa BUG-10)
+
+- **Thay đổi gì:**
+  - Thêm bảng `staff` (tên đăng nhập, mật khẩu băm scrypt, họ tên, trạng thái) và cột `ticket.received_by` (nhân viên tiếp nhận) — `migrations/002_staff_auth.sql`, `seeds/002_staff.sql` (hai tài khoản demo).
+  - Mọi API dưới `/api` (trừ `POST /api/auth/login`) yêu cầu token HS256 8 giờ; thêm `GET /api/auth/me`. Người thực hiện (`received_by`, `changed_by`) lấy từ token — client không còn gửi `changed_by`.
+  - Chỉ nhân viên đã tiếp nhận phiếu mới được đổi trạng thái phiếu đó (người khác nhận `403 FORBIDDEN`); lịch sử phiếu trả kèm tên người thực hiện (US7).
+  - Giao diện thêm trang đăng nhập, nút đăng xuất, khóa ô đổi trạng thái khi không phải chủ phiếu.
+- **Vì sao:** Thiết kế BT1 có đăng nhập (`JWT_SECRET` trong `.env.example`) nhưng BT2 chưa hiện thực; test TC-08 và TC-09 của Bài tập 3 chứng minh bất kỳ ai cũng hủy được phiếu của người khác (BUG-10, Critical). SRS nêu người dùng chính là "nhân viên tiếp nhận" nhưng không đặc tả vai trò quản trị nên hệ thống chỉ có một vai trò.
+- **Ảnh hưởng:** `src/security/`, `src/services/auth-service.js`, `src/services/ticket-service.js`, `src/routes/`, `src/validators/`, `src/repositories/`, `src/web/`, `migrations/002_staff_auth.sql`, `seeds/002_staff.sql`, `docs/api-docs/README.md`. Phiếu tạo trước bản sửa có `received_by` rỗng nên không ai sửa được (chỉ ảnh hưởng dữ liệu thử).
+
+---
+
+## 16. Đóng gói bằng Docker (mức 3): một image Node phục vụ cả API và giao diện
+
+- **Thay đổi gì:**
+  - Thêm `Dockerfile`, `docker-compose.yml` (dịch vụ `db` MySQL 8.0 và `app`), `.dockerignore`, viết lại `.env.example` (tiếng Anh, đủ biến, giá trị mẫu chạy được). Hai lệnh dựng hệ thống: `cp .env.example .env` rồi `docker compose up -d --build`.
+  - Bảng và dữ liệu mẫu nạp tự động khi volume trống: bốn tệp SQL trong `migrations/` và `seeds/` được mount vào `/docker-entrypoint-initdb.d/` với tên có thứ tự (initdb không đọc thư mục con và hai thư mục có tệp trùng số `001`). `db` chỉ báo healthy qua cổng TCP nên sau khi nạp xong; `app` chờ `db` healthy; không mở cổng CSDL ra máy chủ.
+  - Thêm `GET /health` (kiểm tra CSDL, trả 503 khi chết) để Docker và người vận hành biết hệ thống đã lên; thêm `src/config.js` kiểm tra biến bắt buộc khi khởi động (thiếu thì dừng, chỉ in tên biến).
+  - Máy chủ Node phục vụ luôn bản build của giao diện React (`src/routes/static.js`, có chống path traversal): người chấm chỉ cần mở một cổng `3000`, không cần dịch vụ nginx riêng và không phát sinh vấn đề CORS.
+  - Lệnh kiểm thử gộp thành một lệnh `npm test` (12 TC + 22 hồi quy) chạy được trong container: `docker compose exec app npm test`; thêm `npm run tc -- TC-xx` để chạy lại đúng một test case.
+  - Yêu cầu Node nâng lên ≥ 22.9 (cờ `--env-file-if-exists`, vì trong container không có tệp `.env`); image dùng `node:24-alpine`.
+- **Vì sao:** Đề BT3 yêu cầu gói dựng lại được từ thư mục trống bằng tối đa hai lệnh (mục cốt lõi C1) và bộ test chạy PASS bằng một lệnh (C3). Ứng dụng và test kết nối MySQL bằng tài khoản `root` trong mạng nội bộ của compose vì test tích hợp phải tạo CSDL riêng `warranty_l2_test`; đây là giới hạn đã biết, ghi ở `docs/checklist-bao-mat.md`.
+- **Ảnh hưởng:** `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example`, `src/config.js`, `src/server.js`, `src/routes/index.js`, `src/routes/static.js`, `package.json` (scripts, engines), `scripts/run-tc.js`, `README.md`, `docs/deployment-guide.md`.
+
+---
+
+## 17. Nhật ký lỗi 500 và danh sách cột được phép khi cập nhật khách hàng
+
+- **Thay đổi gì:** Lỗi 500 nay được ghi một dòng JSON gồm phương thức, đường dẫn (bỏ query) và mã lỗi — không ghi nội dung lỗi. `MysqlCustomerRepository.update()` chỉ nhận bốn cột `full_name`, `phone`, `email`, `segment`.
+- **Vì sao:** Khi điền checklist bảo mật bằng cách chạy thử: (a) tắt CSDL rồi gọi API trả đúng `500 Loi may chu` nhưng không để lại dấu vết nào cho người vận hành; (b) lệnh grep tìm SQL ghép chuỗi cho thấy tên cột trong câu `UPDATE` lấy từ khóa của đối tượng đầu vào — hiện chỉ validator tạo ra đối tượng đó nên chưa khai thác được, nhưng tầng repository không nên tin người gọi. Cả hai có test hồi quy.
+- **Ảnh hưởng:** `src/routes/index.js`, `src/app.js`, `src/repositories/mysql/customer.repository.js`, `tests/unit/packaging.test.js`, `tests/integration/mysql.test.js`.

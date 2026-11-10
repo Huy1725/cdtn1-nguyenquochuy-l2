@@ -7,49 +7,58 @@
 Hệ thống hỗ trợ nhân viên cửa hàng tiếp nhận nhanh chóng và chính xác các yêu cầu bảo hành từ khách hàng. Chức năng lõi gồm tra cứu hồ sơ khách hàng, ghi nhận thiết bị, tự động đối chiếu hạn bảo hành, phân loại nhóm sự cố và tự động tính hạn cam kết trả máy (loại trừ Chủ Nhật).
 
 ## 2. Yêu cầu môi trường
-* Node.js ≥ 22.9 (dùng cờ `--env-file-if-exists` có sẵn để nạp `.env`, không cần cài `dotenv`), npm 10
-* MySQL 8.0 đang chạy (MySQL Workbench hoặc client `mysql`) — **bắt buộc**, API đọc/ghi trực tiếp MySQL
-* Git
-* Biến môi trường: xem `.env.example` (sao chép thành `.env`, **không** commit `.env`)
+**Cách chính (khuyến nghị, đúng cách người chấm làm): chỉ cần Docker + Git.**
+* Docker Engine 24+ có Docker Compose v2, Git 2.30+, cổng `3000` còn trống. **Không** cần cài Node.js hay MySQL.
+* Hướng dẫn đầy đủ (tiếng Anh, có bảng biến môi trường, dữ liệu mẫu, kiểm tra hệ thống đã chạy đúng và xử lý sự cố): [docs/deployment-guide.md](docs/deployment-guide.md).
+
+**Cách thay thế (không dùng Docker):** Node.js ≥ 22.9 (dùng cờ `--env-file-if-exists` có sẵn để nạp `.env`, không cần `dotenv`), npm 10 và MySQL 8.0 đang chạy.
 
 ## 3. Hướng dẫn cài đặt và chạy
-Mỗi bước là một lệnh (PowerShell/Bash). Phải tạo CSDL **trước** khi chạy `npm start`:
 
+### 3.1. Bằng Docker — đúng hai lệnh từ thư mục trống
 ```bash
-npm install                          # 1. cài thư viện đúng theo package-lock.json
-cp .env.example .env                 # 2. tạo file cấu hình (Windows PowerShell: Copy-Item .env.example .env)
-                                      #    sua DB_PASSWORD trong .env cho dung mat khau MySQL that
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS warranty_l2 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-                                      # 3. tao database (chi can chay 1 lan)
-mysql -u root -p warranty_l2 < migrations/001_initial.sql   # 4. dung bang, chay lai duoc, khong loi
-mysql -u root -p warranty_l2 < migrations/002_staff_auth.sql  # 5. bang nhan vien + nguoi tiep nhan phieu
-mysql -u root -p warranty_l2 < seeds/001_demo.sql           # 6. du lieu mau (~100 khach hang), chay lai khong nhan doi
-mysql -u root -p warranty_l2 < seeds/002_staff.sql          # 7. hai tai khoan nhan vien demo (bang duoi)
-npm test                             # 8. chay TOAN BO bo kiem thu bang mot lenh (27 test: 12 TC + 15 hoi quy, phai PASS het;
-                                      #    can MySQL dang chay, tai khoan trong .env phai co quyen CREATE DATABASE)
-npm start                            # 9. chay API tai http://localhost:3000 (doc/ghi MySQL that)
-npm run dev                          # 10. (terminal thu hai) chay giao dien tai http://localhost:5173
+git clone --branch v1.0 https://github.com/Huy1725/cdtn1-nguyenquochuy-l2.git && cd cdtn1-nguyenquochuy-l2
+cp .env.example .env                 # lệnh 1 (Windows cmd: copy .env.example .env)
+docker compose up -d --build         # lệnh 2: dựng image, chạy MySQL + ứng dụng, tự nạp bảng và dữ liệu mẫu
 ```
 
-Tài khoản demo (mật khẩu chỉ lưu dạng băm scrypt trong CSDL; chỉ dùng để chạy thử):
+Rồi mở **http://localhost:3000** và đăng nhập bằng tài khoản demo (mật khẩu chỉ lưu dạng băm scrypt trong CSDL; chỉ dùng để chạy thử):
 
 | Tên đăng nhập | Mật khẩu | Họ tên |
 |---|---|---|
 | `nv01` | `matkhau01` | Nguyen Van An |
 | `nv02` | `matkhau02` | Tran Thi Binh |
 
-Mọi API dưới `/api` (trừ `POST /api/auth/login`) cần header `Authorization: Bearer <token>`.
-Chỉ nhân viên đã tiếp nhận phiếu mới được đổi trạng thái phiếu đó (người khác nhận `403`).
-
-Kiểm tra hệ thống chạy đúng:
+Kiểm tra hệ thống đã chạy đúng (kết quả mong đợi chi tiết ở [deployment guide](docs/deployment-guide.md) mục 5):
 
 ```bash
-curl http://localhost:3000/api/tickets                     # 401: chưa đăng nhập
-curl -X POST http://localhost:3000/api/auth/login -H "content-type: application/json" -d "{\"username\":\"nv01\",\"password\":\"matkhau01\"}"   # 200, trả token
-curl "http://localhost:3000/api/customers?phone=0901234567" -H "authorization: Bearer <token>"   # trả hồ sơ Nguyen AB
+docker compose ps                        # db và app đều (healthy)
+curl http://localhost:3000/health        # {"status":"ok","db":"up"}
+docker compose exec app npm test         # 34 test PASS (12 test case + 22 hồi quy)
 ```
 
-> **Lưu ý:** `npm start` đọc/ghi MySQL thật qua `src/repositories/mysql/`. `npm test` chạy 10 TC trên repository bộ nhớ (nhanh, độc lập dữ liệu máy) và 2 TC tích hợp trên MySQL thật, trong CSDL riêng `warranty_l2_test` tự dựng rồi xóa-dựng lại — **không đụng** CSDL `warranty_l2`. Xem mục 5.
+Dữ liệu mẫu nạp sẵn: 101 khách hàng, 139 thiết bị, 6 nhóm sự cố, 2 nhân viên. Xóa hết và dựng lại từ đầu: `docker compose down -v`.
+
+### 3.2. Không dùng Docker (MySQL cài sẵn)
+Mỗi bước là một lệnh (PowerShell/Bash). Phải tạo CSDL **trước** khi chạy `npm start`:
+
+```bash
+npm install                          # 1. cài thư viện đúng theo package-lock.json
+cp .env.example .env                 # 2. tạo file cấu hình (Windows cmd: copy .env.example .env)
+                                     #    sửa DB_PASSWORD trong .env cho đúng mật khẩu MySQL của bạn
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS warranty_l2 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+                                     # 3. tạo database (chỉ cần chạy 1 lần)
+mysql -u root -p warranty_l2 < migrations/001_initial.sql     # 4. dựng bảng, chạy lại được, không lỗi
+mysql -u root -p warranty_l2 < migrations/002_staff_auth.sql  # 5. bảng nhân viên + người tiếp nhận phiếu
+mysql -u root -p warranty_l2 < seeds/001_demo.sql             # 6. dữ liệu mẫu (101 khách hàng), chạy lại không nhân đôi
+mysql -u root -p warranty_l2 < seeds/002_staff.sql            # 7. hai tài khoản nhân viên demo
+npm test                             # 8. chạy TOÀN BỘ bộ kiểm thử bằng một lệnh (34 test: 12 TC + 22 hồi quy, phải PASS hết;
+                                     #    cần MySQL đang chạy, tài khoản trong .env phải có quyền CREATE DATABASE)
+npm run build && npm start           # 9. dựng giao diện rồi chạy API + giao diện tại http://localhost:3000
+npm run dev                          # 10. (thay cho bước 9, khi sửa giao diện) giao diện tại http://localhost:5173
+```
+
+Mọi API dưới `/api` (trừ `POST /api/auth/login`) cần header `Authorization: Bearer <token>`. Chỉ nhân viên đã tiếp nhận phiếu mới được đổi trạng thái phiếu đó (người khác nhận `403`). Tài liệu API: [docs/api-docs/README.md](docs/api-docs/README.md).
 
 ## 4. Cấu trúc thư mục
 
@@ -57,6 +66,9 @@ curl "http://localhost:3000/api/customers?phone=0901234567" -H "authorization: B
 cdtn1-nguyenquochuy-l2/
 ├── docs/                          # Tài liệu thiết kế và kiểm thử
 │   ├── test-plan.md, test-report.md   #   Test Plan (4 mục) và Test Report (12 TC × 8 cột + ảnh chụp)
+│   ├── deployment-guide.md        #   Hướng dẫn triển khai (tiếng Anh, 5 mục)
+│   ├── checklist-bao-mat.md       #   Checklist bảo mật 7 mục, mỗi mục có minh chứng
+│   ├── api-docs/README.md         #   Tài liệu API (tiếng Anh): 13 endpoint, ví dụ thật
 │   ├── screenshots/               #   Ảnh chụp kết quả chạy thật, đặt tên theo TC (TC-01-pass.png, …)
 │   ├── srs.md                     #   SRS rút gọn (từ BT1)
 │   ├── api-contract.md            #   Hợp đồng API
@@ -74,10 +86,12 @@ cdtn1-nguyenquochuy-l2/
 │   ├── 001_demo.sql               #   101 khách hàng, 139 thiết bị, 6 nhóm sự cố
 │   └── 002_staff.sql              #   2 tài khoản nhân viên demo (mật khẩu băm scrypt)
 ├── src/
-│   ├── server.js                  # Điểm khởi động: kết nối MySQL thật rồi listen (npm start)
+│   ├── server.js                  # Điểm khởi động: kiểm tra cấu hình, kết nối MySQL thật rồi listen (npm start)
+│   ├── config.js                  # Đọc/kiểm tra biến môi trường một lần, thiếu thì dừng ngay
 │   ├── app.js                     # Ghép các tầng với nhau, không chứa logic
 │   ├── routes/                    # TẦNG 1 – HTTP: nhận request, gọi validator + service, dịch mã lỗi → status
-│   │   ├── index.js, http.js      #   router, bảng dịch mã lỗi → HTTP status, CORS
+│   │   ├── index.js, http.js      #   router, /health, bảng dịch mã lỗi → HTTP status, CORS
+│   │   ├── static.js              #   phục vụ bản build giao diện (chống path traversal)
 │   │   └── auth.routes.js, customer.routes.js, ticket.routes.js, category.routes.js
 │   ├── validators/                # Kiểm tra định dạng/kiểu dữ liệu vào (chạy trước service)
 │   │   └── common.js, auth.validator.js, customer.validator.js, ticket.validator.js
@@ -96,9 +110,11 @@ cdtn1-nguyenquochuy-l2/
 │       ├── api/                   #   Lớp client duy nhất gọi API (client.js gắn token, auth.api.js, tickets.api.js)
 │       ├── pages/                 #   4 màn hình: đăng nhập, tạo phiếu, theo dõi phiếu, chi tiết phiếu
 │       └── components/            #   Layout, Field, ErrorNotice, nhãn hiển thị
+├── Dockerfile, docker-compose.yml, .dockerignore   # Đóng gói: image Node (API + giao diện) và MySQL
 ├── tests/
-│   ├── unit/warranty.test.js      # TC-01…09, TC-11 + 14 test hồi quy (repository bộ nhớ, không cần MySQL)
-│   └── integration/mysql.test.js  # TC-10, TC-12 + 1 test hồi quy (MySQL thật, CSDL warranty_l2_test)
+│   ├── unit/warranty.test.js      # TC-01…09, TC-11 + 15 test hồi quy (repository bộ nhớ, không cần MySQL)
+│   ├── unit/packaging.test.js     # 5 test hồi quy: /health, giao diện tĩnh, cấu hình, log lỗi 500
+│   └── integration/mysql.test.js  # TC-10, TC-12 + 2 test hồi quy (MySQL thật, CSDL warranty_l2_test)
 ├── scripts/run-tc.js              # npm run tc -- TC-07: chạy đúng một test case
 ├── index.html, vite.config.js     # Điểm vào và cấu hình giao diện
 ├── .env.example                   # Liệt kê mọi biến môi trường (giá trị mẫu)
@@ -113,9 +129,10 @@ cdtn1-nguyenquochuy-l2/
 
 ## 5. Kiểm thử
 ```bash
-npm test                  # TOÀN BỘ bộ kiểm thử bằng một lệnh: 12 TC + 15 hồi quy = 27 test (cần MySQL)
+npm test                  # TOÀN BỘ bộ kiểm thử bằng một lệnh: 12 TC + 22 hồi quy = 34 test (cần MySQL)
+docker compose exec app npm test   # cùng 34 test, chạy trong container (cách của người chấm)
 npm run tc -- TC-07       # chạy lại đúng MỘT test case (đổi số cho TC khác)
-npm run test:unit         # chỉ phần không cần MySQL (10 TC + 14 hồi quy)
+npm run test:unit         # chỉ phần không cần MySQL (10 TC + 20 hồi quy)
 npm run test:integration  # chỉ phần MySQL thật (TC-10, TC-12)
 ```
 12 test case trong [docs/test-report.md](docs/test-report.md) (8 cột, kèm ảnh chụp từng TC) thuộc năm loại; Test Plan ở [docs/test-plan.md](docs/test-plan.md):
@@ -135,4 +152,5 @@ npm run test:integration  # chỉ phần MySQL thật (TC-10, TC-12)
 - [x] Viết Unit Test cho lớp Service xử lý các quy tắc QT-01, QT-04, QT-13 (Buổi 10–12).
 - [x] Repository MySQL thật cho `npm start` (`src/repositories/mysql/`); `npm test` vẫn dùng bộ nhớ.
 - [x] Đăng nhập nhân viên (token HS256, mật khẩu băm scrypt) và quy tắc chủ phiếu — sửa BUG-10 (Bài tập 3).
-- [ ] Dockerfile / docker-compose — thuộc Bài tập 3.
+- [x] Đóng gói Docker (Dockerfile + docker-compose, healthcheck, dữ liệu mẫu tự nạp, `/health`) — hai lệnh dựng từ thư mục trống (Bài tập 3).
+- [x] Test Plan, Test Report (12 TC có ảnh), Bug Log (4 bug), Deployment Guide, checklist bảo mật, API docs (Bài tập 3).

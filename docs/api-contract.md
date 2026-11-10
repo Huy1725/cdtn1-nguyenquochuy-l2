@@ -1,3 +1,5 @@
+> **Ghi chú (Bài tập 3):** đây là hợp đồng thiết kế từ BT1/BT2, chưa có đăng nhập. Tài liệu API mô tả đúng hệ thống đang chạy (13 endpoint, có đăng nhập và mã lỗi thật, ví dụ lấy từ lần chạy thật) là [api-docs/README.md](api-docs/README.md).
+
 **API CONTRACT**
 
 **1\. Danh sách Endpoint**
