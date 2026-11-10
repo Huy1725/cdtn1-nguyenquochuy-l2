@@ -60,18 +60,21 @@ after(async () => {
   await admin?.end();
 });
 
-test("TC-12 [reproducibility] chay lai migration + seed lan hai: khong loi, khong nhan doi du lieu", async () => {
+// Moi TC in dong "thuc te:" (t.diagnostic) voi gia tri doc tu CSDL/ket qua that, dat truoc assertion.
+test("TC-12 [reproducibility] chay lai migration + seed lan hai: khong loi, khong nhan doi du lieu", async (t) => {
   const first = await countRows(admin);
+  t.diagnostic(`thuc te: B3 sau lan chay 1 (CSDL ${TEST_DB}): ${JSON.stringify(first)}`);
   assert.equal(first.customer, 101);
   assert.equal(first.device, 139);
   assert.equal(first.issue_category, 6);
   assert.equal(first.staff, 2);
   await runMigrationsAndSeeds(admin);
   const second = await countRows(admin);
+  t.diagnostic(`thuc te: B5 sau lan chay 2 (migration + seed chay lai, khong loi): ${JSON.stringify(second)}`);
   assert.deepEqual(second, first);
 });
 
-test("TC-10 [happy] US7/QT-13: thoi diem ghi nhat ky trang thai khop thoi diem nhan phieu (MySQL that)", async () => {
+test("TC-10 [happy] US7/QT-13: thoi diem ghi nhat ky trang thai khop thoi diem nhan phieu (MySQL that)", async (t) => {
   const pool = createPool({ database: TEST_DB });
   try {
     const app = createApplication({
@@ -88,11 +91,13 @@ test("TC-10 [happy] US7/QT-13: thoi diem ghi nhat ky trang thai khop thoi diem n
       issue_desc: "Man hinh bi soc, cam ung loan",
       priority: "CAO"
     }), { staff_id: 1 });
-    assert.equal(ticket.received_by, 1);
-    assert.equal(ticket.status_log[0].changed_by_name, "Nguyen Van An");
     const receivedAt = new Date(ticket.received_at).getTime();
     const loggedAt = new Date(ticket.status_log[0].changed_at).getTime();
     const gapMinutes = Math.abs(loggedAt - receivedAt) / 60_000;
+    t.diagnostic(`thuc te: tao phieu ${ticket.ticket_code} tren MySQL that; received_at=${ticket.received_at}`);
+    t.diagnostic(`thuc te: nhat ky[0].changed_at=${ticket.status_log[0].changed_at}; lech ${gapMinutes.toFixed(1)} phut; boi ${ticket.status_log[0].changed_by_name}`);
+    assert.equal(ticket.received_by, 1);
+    assert.equal(ticket.status_log[0].changed_by_name, "Nguyen Van An");
     assert.ok(
       gapMinutes < 1,
       `received_at=${ticket.received_at} nhung changed_at=${ticket.status_log[0].changed_at} (lech ${gapMinutes.toFixed(1)} phut)`

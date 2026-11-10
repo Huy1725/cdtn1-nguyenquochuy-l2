@@ -9,19 +9,23 @@ Kế hoạch kiểm thử: [test-plan.md](test-plan.md) · Nhật ký lỗi: [bu
 |---|---|---|---:|---:|---:|---|---|
 | 1 | 2026-11-07 | `887ca51` (chưa sửa gì) | 12 | 8 | 4 | TC-08, TC-09, TC-10, TC-11 | [run1-unit-fail.png](screenshots/run1-unit-fail.png), [TC-10-fail-bug08.png](screenshots/TC-10-fail-bug08.png) |
 | 2 | 2026-11-08 | `14e5935` (đã sửa BUG-08) | 12 | 8 | 4 | TC-08, TC-09, TC-10 (lỗi khác), TC-11 | [TC-10-fail-bug09.png](screenshots/TC-10-fail-bug09.png) |
-| 3 | 2026-11-08 | `2b5a157` (đã sửa BUG-09) | 12 | 9 | 3 | TC-08, TC-09, TC-11 | [TC-10-pass.png](screenshots/TC-10-pass.png) |
-| 4 | 2026-11-08 | `41a1eb0` (đã sửa BUG-11) | 12 | 10 | 2 | TC-08, TC-09 | [TC-11-pass.png](screenshots/TC-11-pass.png) |
-| 5 | 2026-11-08 | commit sửa BUG-10 | 12 | **12** | 0 | — | [TC-08-09-pass.png](screenshots/TC-08-09-pass.png), [TC-10-12-pass.png](screenshots/TC-10-12-pass.png) |
+| 3 | 2026-11-08 | `2b5a157` (đã sửa BUG-09) | 12 | 9 | 3 | TC-08, TC-09, TC-11 | [run3-integration-pass.png](screenshots/run3-integration-pass.png) |
+| 4 | 2026-11-08 | `41a1eb0` (đã sửa BUG-11) | 12 | 10 | 2 | TC-08, TC-09 | [run4-unit.png](screenshots/run4-unit.png) |
+| 5 | 2026-11-08 | `7071796` (đã sửa BUG-10) | 12 | **12** | 0 | — | [run5-unit-pass.png](screenshots/run5-unit-pass.png), [run5-integration-pass.png](screenshots/run5-integration-pass.png) |
+| 6 | _(điền sau khi chụp)_ | _(commit lúc chụp)_ | 12 | _(…)_ | _(…)_ | _(…)_ | mỗi TC một ảnh, xem mục 4 |
 
 Theo loại (đủ 5 loại đề yêu cầu): luồng đúng 5 (TC-01, 02, 03, 10, 11) · giá trị biên 2 (TC-04, 05) ·
 dữ liệu sai 2 (TC-06, 07) · bảo mật 2 (TC-08, 09) · tái lập 1 (TC-12).
-Ngoài 12 TC, `npm test` chạy thêm 10 test hồi quy từ BT2 — mọi lần đều 10/10 PASS; từ lần 3,
-`npm run test:integration` chạy thêm test hồi quy `[regression] BUG-09`; từ lần 5, `npm test` thêm 4 test hồi quy
-cho BUG-10 (đăng nhập sai, token hết hạn/bị sửa, mật khẩu băm, không giả mạo người thực hiện). Lần 5: `npm test` 24/24,
-`npm run test:integration` 3/3.
+Ngoài 12 TC, bộ kiểm thử có 15 test hồi quy (`[regression]`, không tính vào 12 TC): 10 từ BT2, 1 cho BUG-09
+(`npm run test:integration`) và 4 cho BUG-10 (đăng nhập sai, token hết hạn/bị sửa, mật khẩu băm, không giả mạo
+người thực hiện). Ở lần chạy 5 bộ test còn tách hai lệnh (`npm test` 24/24 và `npm run test:integration` 3/3);
+từ lần chạy 6 gộp thành một lệnh `npm test` (27/27).
 
-**Lệnh chạy:** `npm test` (TC-01…09, TC-11, không cần CSDL) · `npm run test:integration` (TC-10, TC-12, cần MySQL) ·
-chạy một TC: `npm test -- --test-name-pattern="TC-04"`.
+**Lệnh chạy:**
+- Cả bộ bằng **một lệnh**: `npm test` → 27 test (12 TC + 15 hồi quy); cần MySQL đang chạy vì có TC-10 và TC-12.
+- Không có MySQL: `npm run test:unit` (TC-01…09, TC-11 + 14 hồi quy) · chỉ phần MySQL: `npm run test:integration`.
+- **Chạy lại đúng một TC:** `npm run tc -- TC-07` (đổi số cho TC khác; tự tìm file chứa TC đó). Dòng đầu in commit đang
+  kiểm — có thêm "(+ THAY ĐỔI CHƯA COMMIT)" nếu mã nguồn khác commit, khi đó ảnh chụp không dùng làm minh chứng.
 
 ## 2. Test case (8 cột)
 
@@ -55,5 +59,30 @@ Từ lần chạy 5 (sau khi sửa BUG-10), mọi TC gọi API **đăng nhập `
 |---|---|---|---|
 | TC-10 (lần 1) | [BUG-08](bug-log.md#bug-08--không-tạo-được-phiếu-bảo-hành-nào-trên-mysql-thật) — mã phiếu tạm dài hơn cột `ticket_code` | Critical | Đã sửa — `14e5935` |
 | TC-10 (lần 2) | [BUG-09](bug-log.md#bug-09--lịch-sử-trạng-thái-phiếu-ghi-sai-giờ-lệch-7-tiếng-so-với-lúc-nhận-máy) — thời điểm nhật ký trạng thái lệch 7 giờ | Critical | Đã sửa — `2b5a157` |
-| TC-08, TC-09 | [BUG-10](bug-log.md#bug-10--ai-cũng-sửahủy-được-mọi-phiếu-bảo-hành-mà-không-cần-đăng-nhập) — API không có đăng nhập và kiểm soát truy cập | Critical | Đã sửa (lần chạy 5) |
+| TC-08, TC-09 | [BUG-10](bug-log.md#bug-10--ai-cũng-sửahủy-được-mọi-phiếu-bảo-hành-mà-không-cần-đăng-nhập) — API không có đăng nhập và kiểm soát truy cập | Critical | Đã sửa — `7071796` |
 | TC-11 | [BUG-11](bug-log.md#bug-11--mô-tả-lỗi-viết-hoa-có-chữ-đ-bị-phân-sai-nhóm-sự-cố) — chữ `Đ` hoa làm phân loại sai nhóm | Major | Đã sửa — `41a1eb0` |
+
+## 4. Ảnh minh chứng từng test case
+
+Mỗi TC có ảnh chụp lần chạy cuối ở [screenshots/](screenshots/), chụp từ lệnh `npm run tc -- TC-xx`: ảnh có dòng lệnh,
+commit đang kiểm, tên TC kèm dấu ✔, và các dòng `thực tế:` in giá trị đọc từ kết quả thật. TC từng FAIL có thêm ảnh FAIL
+chụp trước khi sửa. Cột "Ảnh PASS" là ảnh **lần chạy 6**.
+
+| TC | Ảnh FAIL (trước khi sửa bug) | Ảnh PASS (lần chạy 6) |
+|---|---|---|
+| TC-01 | — (chưa từng FAIL) | _(chờ chụp)_ |
+| TC-02 | — | _(chờ chụp)_ |
+| TC-03 | — | _(chờ chụp)_ |
+| TC-04 | — | _(chờ chụp)_ |
+| TC-05 | — | _(chờ chụp)_ |
+| TC-06 | — | _(chờ chụp)_ |
+| TC-07 | — | _(chờ chụp)_ |
+| TC-08 | [run1-unit-fail.png](screenshots/run1-unit-fail.png) (lần 1), [run4-unit.png](screenshots/run4-unit.png) (lần 4: `200 !== 401`) — BUG-10 | _(chờ chụp)_ |
+| TC-09 | [run1-unit-fail.png](screenshots/run1-unit-fail.png) (lần 1), [run4-unit.png](screenshots/run4-unit.png) (lần 4: `404 !== 200`) — BUG-10 | _(chờ chụp)_ |
+| TC-10 | [TC-10-fail-bug08.png](screenshots/TC-10-fail-bug08.png) (`Data too long` — BUG-08), [TC-10-fail-bug09.png](screenshots/TC-10-fail-bug09.png) (lệch 420 phút — BUG-09) | _(chờ chụp)_ |
+| TC-11 | [run1-unit-fail.png](screenshots/run1-unit-fail.png) (lần 1) — BUG-11 | _(chờ chụp)_ |
+| TC-12 | — | _(chờ chụp)_ |
+
+Ảnh xác nhận chạy lại sau khi sửa từng bug: BUG-09 → [run3-integration-pass.png](screenshots/run3-integration-pass.png) ·
+BUG-11 → [run4-unit.png](screenshots/run4-unit.png) · BUG-10 → [run5-unit-pass.png](screenshots/run5-unit-pass.png),
+[run5-integration-pass.png](screenshots/run5-integration-pass.png).
