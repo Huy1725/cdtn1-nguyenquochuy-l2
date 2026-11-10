@@ -62,6 +62,6 @@ sang HTTP; chạy với repository bộ nhớ nên vẫn nhanh (< 50 ms/test) v�
   - **Chạy lại đúng một TC** (giảng viên chọn ngẫu nhiên tại chỗ): `npm run tc -- TC-07` — tự tìm file test chứa TC đó.
     (Cú pháp `npm test -- --test-name-pattern=...` không lọc được vì tham số bị đưa vào test chứ không vào Node.)
 - **Minh chứng:** mỗi TC có đúng một ảnh chụp lần chạy cuối `docs/screenshots/TC-xx-pass.png`, chụp từ lệnh
-  `npm run tc -- TC-xx`; ảnh có dòng lệnh, commit đang kiểm, và dòng `thực tế:` in **giá trị đọc từ kết quả thật**
+  `npm run tc -- TC-xx`; ảnh có tên lệnh (tên tab + dòng npm in), commit đang kiểm, và dòng `thực tế:` in **giá trị đọc từ kết quả thật**
   (mã HTTP, mã lỗi, giờ, số bản ghi…) ngay dưới tên TC. TC từng FAIL có thêm ảnh FAIL; ảnh các lần chạy toàn bộ
   trong quá trình sửa bug đặt tên `runN-…` (xem bảng ở `test-report.md`).
