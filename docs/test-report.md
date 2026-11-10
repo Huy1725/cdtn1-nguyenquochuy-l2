@@ -72,18 +72,18 @@ chụp nội dung cửa sổ đó ngay khi lệnh chạy xong; ảnh không qua 
 
 | TC | Ảnh FAIL (trước khi sửa bug) | Ảnh PASS (lần chạy 6) |
 |---|---|---|
-| TC-01 | — (chưa từng FAIL) | _(chờ chụp)_ |
-| TC-02 | — | _(chờ chụp)_ |
-| TC-03 | — | _(chờ chụp)_ |
-| TC-04 | — | _(chờ chụp)_ |
-| TC-05 | — | _(chờ chụp)_ |
-| TC-06 | — | _(chờ chụp)_ |
-| TC-07 | — | _(chờ chụp)_ |
-| TC-08 | [run1-unit-fail.png](screenshots/run1-unit-fail.png) (lần 1), [run4-unit.png](screenshots/run4-unit.png) (lần 4: `200 !== 401`) — BUG-10 | _(chờ chụp)_ |
-| TC-09 | [run1-unit-fail.png](screenshots/run1-unit-fail.png) (lần 1), [run4-unit.png](screenshots/run4-unit.png) (lần 4: `404 !== 200`) — BUG-10 | _(chờ chụp)_ |
-| TC-10 | [TC-10-fail-bug08.png](screenshots/TC-10-fail-bug08.png) (`Data too long` — BUG-08), [TC-10-fail-bug09.png](screenshots/TC-10-fail-bug09.png) (lệch 420 phút — BUG-09) | _(chờ chụp)_ |
-| TC-11 | [run1-unit-fail.png](screenshots/run1-unit-fail.png) (lần 1) — BUG-11 | _(chờ chụp)_ |
-| TC-12 | — | _(chờ chụp)_ |
+| TC-01 | — (chưa từng FAIL) | [TC-01-pass.png](screenshots/TC-01-pass.png) |
+| TC-02 | — | [TC-02-pass.png](screenshots/TC-02-pass.png) |
+| TC-03 | — | [TC-03-pass.png](screenshots/TC-03-pass.png) |
+| TC-04 | — | [TC-04-pass.png](screenshots/TC-04-pass.png) |
+| TC-05 | — | [TC-05-pass.png](screenshots/TC-05-pass.png) |
+| TC-06 | — | [TC-06-pass.png](screenshots/TC-06-pass.png) |
+| TC-07 | — | [TC-07-pass.png](screenshots/TC-07-pass.png) |
+| TC-08 | [run1-unit-fail.png](screenshots/run1-unit-fail.png) (lần 1), [run4-unit.png](screenshots/run4-unit.png) (lần 4: `200 !== 401`) — BUG-10 | [TC-08-pass.png](screenshots/TC-08-pass.png) |
+| TC-09 | [run1-unit-fail.png](screenshots/run1-unit-fail.png) (lần 1), [run4-unit.png](screenshots/run4-unit.png) (lần 4: `404 !== 200`) — BUG-10 | [TC-09-pass.png](screenshots/TC-09-pass.png) |
+| TC-10 | [TC-10-fail-bug08.png](screenshots/TC-10-fail-bug08.png) (`Data too long` — BUG-08), [TC-10-fail-bug09.png](screenshots/TC-10-fail-bug09.png) (lệch 420 phút — BUG-09) | [TC-10-pass.png](screenshots/TC-10-pass.png) |
+| TC-11 | [run1-unit-fail.png](screenshots/run1-unit-fail.png) (lần 1) — BUG-11 | [TC-11-pass.png](screenshots/TC-11-pass.png) |
+| TC-12 | — | [TC-12-pass.png](screenshots/TC-12-pass.png) |
 
 Ảnh xác nhận chạy lại sau khi sửa từng bug: BUG-09 → [run3-integration-pass.png](screenshots/run3-integration-pass.png) ·
 BUG-11 → [run4-unit.png](screenshots/run4-unit.png) · BUG-10 → [run5-unit-pass.png](screenshots/run5-unit-pass.png),
@@ -153,4 +153,17 @@ Chụp từ trình duyệt Edge thật mở `http://localhost:3000` của hệ t
 ![Tra cứu khách hàng](screenshots/ui-lookup.png)
 
 ![Chi tiết phiếu vừa tạo](screenshots/ui-ticket.png)
+
+## 6. Phép thử máy trắng (clone từ GitHub, hai lệnh)
+
+Làm đúng Deployment Guide trên thư mục trống: `git clone` repo từ GitHub (commit `fbe6e92`), `copy .env.example .env`, `docker compose up -d --build`
+(lệnh thứ hai xong trong 28 giây), đợi vài giây như Guide mục 5 ghi, rồi kiểm tra. Kết quả: `docker compose ps` cả `db` và `app` `healthy`; `/health` trả
+`{"status":"ok","db":"up"}`; API chưa đăng nhập trả `401`; `docker compose exec app npm test` PASS **34/34** (12 test case + 22 hồi quy).
+
+![Phép thử máy trắng: clone, hai lệnh, kiểm tra](screenshots/blank-machine-setup.png)
+
+![Bộ test chạy trong container](screenshots/blank-machine-test.png)
+
+Lần thử máy trắng đầu tiên (commit `ac860e3`) lộ lỗi BUG-12: ngay sau lệnh dựng `app` còn `health: starting` và `/health` bị từ chối kết nối;
+ảnh trước khi sửa: [blank-machine-before-fix.png](screenshots/blank-machine-before-fix.png). Xem [bug-log.md](bug-log.md).
 

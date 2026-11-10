@@ -11,7 +11,7 @@ Mức độ đo bằng **tác động tới người dùng**, không phải đ�
 | BUG-09 — nhật ký trạng thái lệch 7 giờ | Critical | TC-10 | [2b5a157](https://github.com/Huy1725/cdtn1-nguyenquochuy-l2/commit/2b5a157) |
 | BUG-10 — thiếu đăng nhập và kiểm soát truy cập | Critical | TC-08, TC-09 | [7071796](https://github.com/Huy1725/cdtn1-nguyenquochuy-l2/commit/7071796) |
 | BUG-11 — chữ "Đ" hoa phân loại sai nhóm sự cố | Major | TC-11 | [41a1eb0](https://github.com/Huy1725/cdtn1-nguyenquochuy-l2/commit/41a1eb0) |
-| BUG-12 — ngay sau `docker compose up -d` hệ thống chưa `healthy`, `/health` từ chối kết nối | Minor | phép thử máy trắng | _(điền link sau khi push)_ |
+| BUG-12 — ngay sau `docker compose up -d` hệ thống chưa `healthy`, `/health` từ chối kết nối | Minor | phép thử máy trắng | [fbe6e92](https://github.com/Huy1725/cdtn1-nguyenquochuy-l2/commit/fbe6e92) |
 
 ---
 
@@ -67,11 +67,11 @@ Mức độ đo bằng **tác động tới người dùng**, không phải đ�
 
 1. **Mã và mức độ:** BUG-12 · **MINOR** — hệ thống vẫn lên được, nhưng trong vài giây đầu các bước kiểm tra của Deployment Guide cho kết quả sai: người chấm chạy kiểm tra ngay có thể kết luận hệ thống không chạy (rủi ro cho mục cốt lõi C1).
 2. **Phát hiện bởi:** phép thử máy trắng (clone repo từ GitHub vào thư mục trống, chạy đúng hai lệnh, rồi chạy ngay Guide mục 5 bước 1–2) — không thuộc 12 test case.
-3. **Triệu chứng:** Ngay sau lệnh dựng, `docker compose ps` ghi `app … Up Less than a second (health: starting)` và `curl http://localhost:3000/health` trả `HTTP 000` (kết nối bị từ chối). Mười mấy giây sau mới `healthy` và `/health` trả `200`.
+3. **Triệu chứng:** Ngay sau lệnh dựng, `docker compose ps` ghi `app … Up Less than a second (health: starting)` và `curl http://localhost:3000/health` trả `HTTP 000` (kết nối bị từ chối). Sau đó `app` mới chuyển `healthy` và `/health` trả `200` (một lần đo muộn hơn ghi `Up 37 seconds (healthy)`).
 4. **Cách tái lập:** `git clone` repo vào thư mục trống → `copy .env.example .env` → `docker compose up -d --build` → chạy ngay `docker compose ps` và `curl http://localhost:3000/health`.
-5. **Nguyên nhân:** `docker compose up -d` trả về ngay khi container `app` được **khởi động**, không chờ nó khỏe. Tiến trình Node cần khoảng một giây để mở cổng, và healthcheck của `app` chỉ chạy mỗi 10 giây (`interval: 10s`) nên trạng thái `starting` kéo dài cỡ chục giây. `depends_on: service_healthy` chỉ làm `app` chờ CSDL, không làm lệnh `up -d` chờ `app`.
+5. **Nguyên nhân:** `docker compose up -d` trả về ngay khi container `app` được **khởi động**, không chờ nó khỏe. Tiến trình Node cần khoảng một giây để mở cổng, và healthcheck của `app` chỉ chạy mỗi 10 giây (`interval: 10s`) nên trạng thái `starting` kéo dài tới lần kiểm tra kế tiếp (chưa đo chính xác khoảng này). `depends_on: service_healthy` chỉ làm `app` chờ CSDL, không làm lệnh `up -d` chờ `app`.
 6. **Cách sửa:** `docker-compose.yml` — healthcheck của `app` chạy mỗi 3 giây (`interval: 3s`, `timeout: 3s`, `retries: 10`); `docs/deployment-guide.md` mục 5 ghi rõ "nếu thấy `health: starting`, đợi vài giây rồi chạy lại" và mục 6 thêm dòng xử lý. Không dùng `up --wait` hay `start_interval` vì không chạy trên Docker/Compose cũ, làm hỏng lệnh người chấm.
-7. **Link commit và xác nhận:** _(điền link commit sau khi push)_ — chạy lại phép thử máy trắng: đo được `app` thành `healthy` khoảng 5 giây sau khi `up -d` trả về (trước khi sửa: mười mấy giây). Ảnh trước khi sửa: [blank-machine-before-fix.png](screenshots/blank-machine-before-fix.png).
+7. **Link commit và xác nhận:** https://github.com/Huy1725/cdtn1-nguyenquochuy-l2/commit/fbe6e92 — chạy lại phép thử máy trắng từ bản clone GitHub: lệnh dựng xong trong 28 giây; sau khi đợi 6 giây như Guide ghi, `docker compose ps` báo `app … Up 6 seconds (healthy)`, `/health` trả 200, bộ test trong container 34/34 PASS (đo riêng trên bản sao thư mục làm việc: `healthy` sau 5,1 giây kể từ khi `up -d` trả về). Ảnh trước khi sửa: [blank-machine-before-fix.png](screenshots/blank-machine-before-fix.png); sau khi sửa: [blank-machine-setup.png](screenshots/blank-machine-setup.png).
 
 ---
 

@@ -60,7 +60,8 @@ Demo logins (sample data, stored only as scrypt hashes):
 | `nv01` | `matkhau01` | Nguyen Van An |
 | `nv02` | `matkhau02` | Tran Thi Binh |
 
-To compare the counts: `docker compose exec db sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot warranty_l2 -e "SELECT COUNT(*) FROM customer"'` → `101`.
+To compare the counts (works in cmd, PowerShell and bash; use your own `DB_PASSWORD` if you changed it, and ignore the harmless "password on the command line" warning):
+`docker compose exec db mysql -uroot -pchange-me-db-password warranty_l2 -e "SELECT COUNT(*) FROM customer"` → `101`.
 
 ## 5. Verify it works
 
@@ -74,8 +75,11 @@ Run these in order. Each line shows the expected result.
 | 4 | Open `http://localhost:3000` in a browser, log in as `nv01` / `matkhau01` | The intake screen appears; searching phone `0901234567` shows "Nguyen AB" and device `A001` |
 | 5 | `docker compose exec app npm test` | Ends with `ℹ tests 34`, `ℹ pass 34`, `ℹ fail 0` (12 test cases + 22 regression tests, about 5 seconds) |
 
+In **Windows PowerShell** type `curl.exe` instead of `curl` (there `curl` is an alias of `Invoke-WebRequest`, which does not accept `-i`). cmd, Git Bash, macOS and Linux accept plain `curl`.
+
 To run one test case only: `docker compose exec app npm run tc -- TC-07` → `✔ TC-07 …`, `ℹ pass 1`.
 The tests create and drop their own scratch database `warranty_l2_test`; they never touch the data in `warranty_l2`.
+The lines `.env not found. Continuing without it.` in the output are normal inside the container: the settings come from Compose, not from a file.
 
 ## 6. Troubleshooting
 

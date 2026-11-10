@@ -17,7 +17,8 @@ Hệ thống hỗ trợ nhân viên cửa hàng tiếp nhận nhanh chóng và c
 
 ### 3.1. Bằng Docker — đúng hai lệnh từ thư mục trống
 ```bash
-git clone --branch v1.0 https://github.com/Huy1725/cdtn1-nguyenquochuy-l2.git && cd cdtn1-nguyenquochuy-l2
+git clone --branch v1.0 https://github.com/Huy1725/cdtn1-nguyenquochuy-l2.git
+cd cdtn1-nguyenquochuy-l2
 cp .env.example .env                 # lệnh 1 (Windows cmd: copy .env.example .env)
 docker compose up -d --build         # lệnh 2: dựng image, chạy MySQL + ứng dụng, tự nạp bảng và dữ liệu mẫu
 ```
@@ -33,14 +34,14 @@ Kiểm tra hệ thống đã chạy đúng (kết quả mong đợi chi tiết �
 
 ```bash
 docker compose ps                        # db và app đều (healthy); nếu app còn "starting" thì đợi vài giây rồi chạy lại
-curl http://localhost:3000/health        # {"status":"ok","db":"up"}
+curl http://localhost:3000/health        # {"status":"ok","db":"up"}  (Windows PowerShell: gõ curl.exe thay cho curl)
 docker compose exec app npm test         # 34 test PASS (12 test case + 22 hồi quy)
 ```
 
 Dữ liệu mẫu nạp sẵn: 101 khách hàng, 139 thiết bị, 6 nhóm sự cố, 2 nhân viên. Xóa hết và dựng lại từ đầu: `docker compose down -v`.
 
 ### 3.2. Không dùng Docker (MySQL cài sẵn)
-Mỗi bước là một lệnh (PowerShell/Bash). Phải tạo CSDL **trước** khi chạy `npm start`:
+Mỗi bước là một lệnh (chạy trong **cmd** hoặc **Git Bash**; PowerShell không hỗ trợ toán tử `<` ở các bước 4–7). Phải tạo CSDL **trước** khi chạy `npm start`:
 
 ```bash
 npm install                          # 1. cài thư viện đúng theo package-lock.json

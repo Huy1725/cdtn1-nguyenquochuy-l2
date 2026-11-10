@@ -1,0 +1,56 @@
+# Continuous Integration: on every push / pull request GitHub starts a clean Ubuntu machine,
+# installs the project exactly as package-lock.json says, builds the UI and runs the whole
+# test suite (34 tests: 12 test cases + 22 regression tests) against a real MySQL 8.0.
+# The file must stay at .github/workflows/ci.yml, otherwise GitHub does not run it.
+# Read the result in the repository's "Actions" tab. A red run = open it and read the log.
+name: CI
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # A throw-away MySQL that exists only while this job runs.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci-only-password # test value, not a real secret
+        ports:
+          - 3306:3306
+        # Steps start only after this command succeeds (TCP ping = real server is up).
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -pci-only-password --silent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    # Same variables as .env.example; the integration test reads them to reach MySQL.
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ci-only-password
+      DB_NAME: warranty_l2
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24 # same major version as the Dockerfile (node:24-alpine)
+          cache: npm
+
+      - name: Install dependencies (exactly as package-lock.json)
+        run: npm ci
+
+      - name: Build the UI
+        run: npm run build
+
+      - name: Run all tests (unit + integration)
+        run: npm test
