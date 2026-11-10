@@ -1,5 +1,7 @@
 // Cung giao dien voi InMemoryCustomerRepository (xem src/repositories/in-memory.js);
 // chi khac o cho doc/ghi that vao MySQL. KHONG chua quy tac nghiep vu (QT-01 nam o service).
+const UPDATABLE_COLUMNS = ["full_name", "phone", "email", "segment"];
+
 export class MysqlCustomerRepository {
   constructor(pool) {
     this.pool = pool;
@@ -25,6 +27,10 @@ export class MysqlCustomerRepository {
 
   async update(customerId, changes) {
     const fields = Object.keys(changes).filter((key) => changes[key] !== undefined);
+    // Ten cot di thang vao cau SQL nen chi nhan cot nam trong danh sach cho phep (chong chen SQL qua ten cot);
+    // gia tri thi luon di qua tham so "?".
+    const unknown = fields.filter((key) => !UPDATABLE_COLUMNS.includes(key));
+    if (unknown.length > 0) throw new Error(`Cot khong duoc phep cap nhat: ${unknown.join(", ")}`);
     if (fields.length === 0) return this.findById(customerId);
     const setClause = fields.map((key) => `${key} = ?`).join(", ");
     await this.pool.query(`UPDATE customer SET ${setClause} WHERE customer_id = ?`, [

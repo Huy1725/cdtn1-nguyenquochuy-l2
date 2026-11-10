@@ -107,6 +107,24 @@ test("TC-10 [happy] US7/QT-13: thoi diem ghi nhat ky trang thai khop thoi diem n
   }
 });
 
+test("[regression] A05: repository tu choi ten cot la khi cap nhat khach (chong chen SQL qua ten cot)", async () => {
+  const pool = createPool({ database: TEST_DB, connectionLimit: 2 });
+  try {
+    const repository = new MysqlCustomerRepository(pool);
+    const customer = await repository.findByPhone("0901234567");
+    await assert.rejects(
+      repository.update(customer.customer_id, { "full_name = 'hacked', email": "x" }),
+      /Cot khong duoc phep cap nhat/
+    );
+    assert.equal((await repository.findById(customer.customer_id)).full_name, "Nguyen AB");
+    const updated = await repository.update(customer.customer_id, { segment: "VIP" }); // cot hop le van chay
+    assert.equal(updated.segment, "VIP");
+    await repository.update(customer.customer_id, { segment: "STANDARD" });
+  } finally {
+    await pool.end();
+  }
+});
+
 test("[regression] BUG-09: moi ket noi cua pool dung gio UTC, CURRENT_TIMESTAMP khop gio UTC", async () => {
   const pool = createPool({ database: TEST_DB, connectionLimit: 2 });
   try {

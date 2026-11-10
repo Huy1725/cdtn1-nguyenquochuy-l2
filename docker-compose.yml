@@ -1,0 +1,50 @@
+# Two commands from an empty folder (see docs/deployment-guide.md):
+#   cp .env.example .env
+#   docker compose up -d --build
+services:
+  db:
+    image: mysql:8.0
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    volumes:
+      - dbdata:/var/lib/mysql
+      # Tables + sample data load automatically, in this order, ONLY when the volume is empty.
+      # (initdb ignores sub-folders and sorts by file name, so each file gets an ordered name.)
+      - ./migrations/001_initial.sql:/docker-entrypoint-initdb.d/10-001_initial.sql:ro
+      - ./migrations/002_staff_auth.sql:/docker-entrypoint-initdb.d/20-002_staff_auth.sql:ro
+      - ./seeds/001_demo.sql:/docker-entrypoint-initdb.d/30-001_demo.sql:ro
+      - ./seeds/002_staff.sql:/docker-entrypoint-initdb.d/40-002_staff.sql:ro
+    healthcheck:
+      # Ping over TCP (127.0.0.1): during first-time init MySQL only listens on a socket, so this
+      # turns healthy only after every .sql file above has finished loading.
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_ROOT_PASSWORD\" mysqladmin ping -h 127.0.0.1 -u root --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    # No "ports:" - the database is reachable only from other services on the compose network.
+
+  app:
+    build: .
+    env_file: .env
+    environment:
+      DB_HOST: db # the service name, not localhost
+      DB_PORT: "3306"
+      DB_USER: root # the mysql image creates this account; tests need CREATE DATABASE (see guide)
+      PORT: "3000"
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy # wait until MySQL is READY, not merely started
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  dbdata: {}

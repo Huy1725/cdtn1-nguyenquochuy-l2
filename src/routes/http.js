@@ -47,6 +47,7 @@ export function bearerToken(request) {
 export function send(response, status, payload, corsOrigin) {
   response.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
+    "x-content-type-options": "nosniff",
     "access-control-allow-origin": corsOrigin,
     "access-control-allow-headers": "content-type, authorization",
     "access-control-allow-methods": "GET,POST,PATCH,DELETE,OPTIONS"

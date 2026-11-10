@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { createHttpServer } from "./routes/index.js";
+import { createStaticHandler } from "./routes/static.js";
 import {
   InMemoryCategoryRepository,
   InMemoryCustomerRepository,
@@ -42,6 +43,14 @@ export function createApplication(options = {}) {
     customerService,
     ticketService,
     authService,
-    server: createHttpServer({ customerService, ticketService, classifyService, authService }, { corsOrigin })
+    server: createHttpServer(
+      { customerService, ticketService, classifyService, authService },
+      {
+        corsOrigin,
+        checkDb: options.checkDb,
+        logError: options.logError,
+        staticHandler: options.staticDir ? createStaticHandler(options.staticDir) : null
+      }
+    )
   };
 }

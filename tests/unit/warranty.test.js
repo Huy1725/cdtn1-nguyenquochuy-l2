@@ -316,6 +316,24 @@ test("[regression] JSON hong va SDT sai dinh dang -> 400", async () => {
   });
 });
 
+test("[regression] A05 chuoi tan cong SQL trong SDT bi tu choi 400, khong tra danh sach khach", async () => {
+  const ctx = await setup();
+  await withServer(ctx.app, async (base) => {
+    const token = await login(base, "nv01");
+    const attack = encodeURIComponent("' OR '1'='1");
+    const byQuery = await api(base, "GET", `/api/customers?phone=${attack}`, { token });
+    assert.equal(byQuery.status, 400);
+    assert.equal(byQuery.body.error.code, "VALIDATION_FAILED");
+    assert.ok(byQuery.body.error.fields.phone);
+    assert.doesNotMatch(byQuery.text, /Nguyen AB|0901234567/);
+    const byBody = await api(base, "POST", "/api/customers", {
+      token, body: { phone: "0912345678'; DROP TABLE customer;--", full_name: "x" }
+    });
+    assert.equal(byBody.status, 400);
+    assert.equal(byBody.body.error.code, "VALIDATION_FAILED");
+  });
+});
+
 test("[regression] BUG-10 sai mat khau va sai ten dang nhap tra CUNG mot loi 401, khong lo stack", async () => {
   const ctx = await setup();
   await withServer(ctx.app, async (base) => {
