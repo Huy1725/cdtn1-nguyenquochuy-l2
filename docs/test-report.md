@@ -1,4 +1,4 @@
-[TC-12-pass.png](screenshots/TC-12-pass.png) |[TC-11-pass.png](screenshots/TC-11-pass.png) |[TC-10-pass.png](screenshots/TC-10-pass.png) |[TC-09-pass.png](screenshots/TC-09-pass.png) |[TC-08-pass.png](screenshots/TC-08-pass.png) |[TC-07-pass.png](screenshots/TC-07-pass.png) |[TC-06-pass.png](screenshots/TC-06-pass.png) |[TC-05-pass.png](screenshots/TC-05-pass.png) |[TC-04-pass.png](screenshots/TC-04-pass.png) |[TC-03-pass.png](screenshots/TC-03-pass.png) |[TC-02-pass.png](screenshots/TC-02-pass.png) |[TC-01-pass.png](screenshots/TC-01-pass.png) |# Test Report — Luồng L2: Tiếp nhận và phân loại yêu cầu bảo hành
+# Test Report — Luồng L2: Tiếp nhận và phân loại yêu cầu bảo hành
 
 Sinh viên: Nguyễn Quốc Huy · 2374802010185 · Track SE · Bài tập 3
 Kế hoạch kiểm thử: [test-plan.md](test-plan.md) · Nhật ký lỗi: [bug-log.md](bug-log.md) · Ảnh chụp: [screenshots/](screenshots/)

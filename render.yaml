@@ -1,0 +1,27 @@
+# Render Blueprint for the OPTIONAL free-tier demo deployment (Deployment Guide, section 8).
+# Render dashboard: New > Blueprint > connect this repository > branch main > Deploy Blueprint.
+# It does not affect "docker compose up": the normal package uses Dockerfile and docker-compose.yml.
+#
+# No secret is stored in this file or in the image: Render generates DB_PASSWORD and JWT_SECRET and keeps them
+# only in the service's Environment tab. The free plan has no managed MySQL and no persistent disk, so
+# deploy/render/Dockerfile runs MySQL inside the same container and the data resets to the sample data on restart.
+services:
+  - type: web
+    name: warranty-l2-nguyenquochuy
+    runtime: docker
+    plan: free
+    region: singapore # closest Render region to Vietnam
+    branch: main
+    dockerfilePath: ./deploy/render/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health # 200 while the database answers, 503 otherwise
+    autoDeployTrigger: commit
+    envVars:
+      - key: DB_USER
+        value: app # MySQL account with SELECT/INSERT/UPDATE/DELETE on warranty_l2 only
+      - key: DB_NAME
+        value: warranty_l2
+      - key: DB_PASSWORD
+        generateValue: true # random value created by Render
+      - key: JWT_SECRET
+        generateValue: true # random value created by Render (the app needs at least 32 characters)

@@ -1,0 +1,29 @@
+# MySQL settings for the Render demo image (copied to /etc/mysql/conf.d/render.cnf).
+# Goal: MySQL + Node together must stay far below the 512 MB of a free Render instance.
+[mysqld]
+datadir = /opt/mysql-data
+
+# Same server defaults as docker-compose.yml, so the data behaves the same in both packages.
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+# Reachable only from inside this container: Render publishes just the Node port.
+bind-address = 127.0.0.1
+mysqlx = OFF
+skip-name-resolve
+
+# Small memory footprint.
+performance_schema = OFF
+disable-log-bin
+innodb_buffer_pool_size = 64M
+innodb_log_buffer_size = 4M
+innodb_redo_log_capacity = 32M
+max_connections = 40
+table_open_cache = 256
+thread_cache_size = 4
+tmp_table_size = 16M
+max_heap_table_size = 16M
+
+# The data is demo data that resets on every restart: favour speed over durability.
+innodb_flush_log_at_trx_commit = 2
+innodb_doublewrite = OFF

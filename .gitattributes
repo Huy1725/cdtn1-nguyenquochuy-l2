@@ -1,0 +1,5 @@
+# Files that run inside Linux containers must keep LF line endings, even when the repository is cloned on Windows
+# (a CRLF script fails with "bash\r: No such file or directory").
+*.sh text eol=lf
+*.cnf text eol=lf
+Dockerfile text eol=lf
