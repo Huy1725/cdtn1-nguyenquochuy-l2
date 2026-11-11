@@ -30,6 +30,7 @@ Defined in `.env` (created from `.env.example`). The sample values work as they 
 | `DB_PASSWORD` | Password of the MySQL `root` account (Docker) or of your own MySQL account (`npm start` without Docker) | `change-me-db-password` | yes |
 | `JWT_SECRET` | Key that signs login tokens; at least 32 characters — the app refuses to start otherwise | `change-me-to-a-random-string-of-at-least-32-characters` | yes |
 | `DB_NAME` | Database name | `warranty_l2` | yes |
+| `TEST_DB_NAME` | Scratch database that the integration tests create and drop (never the real data) | `warranty_l2_test` | no (default shown) |
 | `APP_PORT` | Port of the app on your machine (Docker only) | `3000` | no (default 3000) |
 | `DB_HOST` | Database host. Docker sets it to `db` by itself | `localhost` | only without Docker |
 | `DB_PORT` | Database port (Docker uses 3306) | `3306` | no |

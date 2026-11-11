@@ -420,7 +420,25 @@ Example: `GET /api/tickets?status=MOI&page=1&size=5`
 
 **Parameters.** Path `id`: positive integer.
 
-**Success response** — `200`: the same body as the `201` response of endpoint 10, with one history entry per status change.
+Example request: `GET /api/tickets/1`
+
+**Success response** — `200`: the same shape as the `201` response of endpoint 10, with one history entry per status change. Real response for a ticket that was created and then moved to `DANG_XU_LY` (a second run on a fresh database, so the timestamps differ from the example of endpoint 10):
+
+```json
+{
+  "ticket_id": 1, "ticket_code": "BH-000001/2026", "customer_id": 1, "device_id": 1, "category_id": 3,
+  "issue_desc": "May bi vao nuoc, khong len nguon", "priority": "CAO", "status": "DANG_XU_LY",
+  "received_at": "2026-11-11T15:46:27.000Z", "due_date": "2026-11-12T15:46:27.000Z",
+  "received_by": 1, "received_by_name": "Nguyen Van An",
+  "serial_no": "A001", "warranty_status": "CON_BAO_HANH",
+  "status_log": [
+    { "log_id": 1, "ticket_id": 1, "from_status": null, "to_status": "MOI", "note": null,
+      "changed_at": "2026-11-11T15:46:27.000Z", "changed_by": 1, "changed_by_name": "Nguyen Van An" },
+    { "log_id": 2, "ticket_id": 1, "from_status": "MOI", "to_status": "DANG_XU_LY", "note": "Da goi bao khach",
+      "changed_at": "2026-11-11T15:46:28.000Z", "changed_by": 1, "changed_by_name": "Nguyen Van An" }
+  ]
+}
+```
 
 **Errors.**
 
@@ -451,8 +469,23 @@ Example: `GET /api/tickets?status=MOI&page=1&size=5`
 { "status": "DANG_XU_LY", "note": "Da goi bao khach" }
 ```
 
-**Success response** — `200`: the full ticket (as endpoint 12) with `"status": "DANG_XU_LY"` and a second history entry
-`{ "log_id": 2, "from_status": "MOI", "to_status": "DANG_XU_LY", "note": "Da goi bao khach", "changed_by": 1, "changed_by_name": "Nguyen Van An", … }`.
+**Success response** — `200`: the full ticket (as endpoint 12) with the new status and one more history entry. Real response to the request above, sent by `nv01` right after creating the ticket (it is the same JSON that `GET /api/tickets/1` returns afterwards):
+
+```json
+{
+  "ticket_id": 1, "ticket_code": "BH-000001/2026", "customer_id": 1, "device_id": 1, "category_id": 3,
+  "issue_desc": "May bi vao nuoc, khong len nguon", "priority": "CAO", "status": "DANG_XU_LY",
+  "received_at": "2026-11-11T15:46:27.000Z", "due_date": "2026-11-12T15:46:27.000Z",
+  "received_by": 1, "received_by_name": "Nguyen Van An",
+  "serial_no": "A001", "warranty_status": "CON_BAO_HANH",
+  "status_log": [
+    { "log_id": 1, "ticket_id": 1, "from_status": null, "to_status": "MOI", "note": null,
+      "changed_at": "2026-11-11T15:46:27.000Z", "changed_by": 1, "changed_by_name": "Nguyen Van An" },
+    { "log_id": 2, "ticket_id": 1, "from_status": "MOI", "to_status": "DANG_XU_LY", "note": "Da goi bao khach",
+      "changed_at": "2026-11-11T15:46:28.000Z", "changed_by": 1, "changed_by_name": "Nguyen Van An" }
+  ]
+}
+```
 
 **Errors.**
 
