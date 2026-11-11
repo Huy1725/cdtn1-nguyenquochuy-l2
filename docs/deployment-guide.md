@@ -117,6 +117,7 @@ Why a separate image: Render's free plan has no managed MySQL and no persistent 
 builds **one** image that runs MySQL 8.0 (schema and sample data already loaded at build time) and the Node app together. You will notice two consequences:
 
 - The data **resets to the sample data** whenever Render restarts or redeploys the service; tickets created in the demo are not kept.
+- Unlike the Docker Compose package (section 4, no tickets), the demo image also loads [`deploy/render/demo-tickets.sql`](../deploy/render/demo-tickets.sql): **14 sample tickets** with their status history, so the ticket list is not empty when you open the link. They cover all four statuses, three priorities, both demo staff members, and devices that are still under warranty or not. Due dates were computed with the system's own rule (QT-04, Sundays skipped), and a ticket created in the demo gets the next code, `BH-000015/2026`.
 - A free service sleeps after 15 minutes without traffic; the first request afterwards takes about a minute while Render wakes it up.
 
 **Steps done to deploy**
@@ -127,7 +128,7 @@ builds **one** image that runs MySQL 8.0 (schema and sample data already loaded 
    Nothing has to be typed: Render creates the two secrets itself (`generateValue` in [`render.yaml`](../render.yaml)).
 4. Wait until the service shows **Live** (the first build took 1 minute 15 seconds). Render builds `deploy/render/Dockerfile` and switches to the new version only after `GET /health` answers 200.
 5. Verify as in section 5: `curl https://warranty-l2-nguyenquochuy.onrender.com/health` → `{"status":"ok","db":"up"}`;
-   `curl -i https://warranty-l2-nguyenquochuy.onrender.com/api/tickets` → `401`; open the URL in a browser and log in as `nv01`.
+   `curl -i https://warranty-l2-nguyenquochuy.onrender.com/api/tickets` → `401`; open the URL in a browser, log in as `nv01` and open **Theo dõi phiếu**: the list shows the 14 sample tickets (`BH-000001/2026` … `BH-000014/2026`).
    If a deploy fails, read the service's **Logs** tab: the entrypoint names the variable that is missing or invalid.
    Screenshots: `docs/screenshots/render-1-curl.png` … `render-4-ticket.png` (checks and web UI on the public address) and `render-5-service.png`, `render-6-env.png` (Render dashboard; the secret values are hidden).
 

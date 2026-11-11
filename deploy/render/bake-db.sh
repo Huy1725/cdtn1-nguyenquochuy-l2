@@ -29,6 +29,11 @@ for file in /app/migrations/*.sql /app/seeds/*.sql; do
   mysql --socket="$SOCKET" -uroot warranty_l2 < "$file"
 done
 
+# Sample warranty tickets that exist ONLY in this demo image, so the ticket list is not empty when someone opens
+# the Render link. docker-compose.yml and the tests never load this file.
+echo "loading /app/demo-tickets.sql"
+mysql --socket="$SOCKET" -uroot warranty_l2 < /app/demo-tickets.sql
+
 mysqladmin --socket="$SOCKET" -uroot shutdown
 wait "$MYSQLD_PID"
 chown -R mysql:mysql "$DATADIR"

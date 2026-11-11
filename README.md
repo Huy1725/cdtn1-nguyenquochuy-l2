@@ -64,7 +64,7 @@ Mọi API dưới `/api` (trừ `POST /api/auth/login`) cần header `Authorizat
 Kiểm thử tự động (CI): mỗi lần push, GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)) chạy `npm ci`, `npm run build` và `npm test` trên máy Ubuntu sạch với MySQL 8.0; kết quả ở tab **Actions** của repo.
 
 ### 3.3. Bản chạy thử trên Render (tùy chọn)
-Bản demo công khai: **https://warranty-l2-nguyenquochuy.onrender.com** — đăng nhập `nv01` / `matkhau01`. Chạy trên gói miễn phí của Render nên **ngủ sau 15 phút không có truy cập** (lần mở đầu tiên sau đó mất khoảng một phút)
+Bản demo công khai: **https://warranty-l2-nguyenquochuy.onrender.com** — đăng nhập `nv01` / `matkhau01`; mục **Theo dõi phiếu** có sẵn 14 phiếu mẫu (`deploy/render/demo-tickets.sql`, chỉ bản Render có; gói Docker Compose vẫn không có phiếu nào). Chạy trên gói miễn phí của Render nên **ngủ sau 15 phút không có truy cập** (lần mở đầu tiên sau đó mất khoảng một phút)
 và **dữ liệu quay về dữ liệu mẫu mỗi khi Render khởi động lại** (gói miễn phí không có MySQL quản lý và không có ổ đĩa bền, nên MySQL chạy cùng container với ứng dụng).
 Các bước đã làm, biến môi trường và lưu ý bảo mật: [Deployment Guide mục 8](docs/deployment-guide.md). Cách dựng bằng Docker Compose ở mục 3.1 không thay đổi.
 

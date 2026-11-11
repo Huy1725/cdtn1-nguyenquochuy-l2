@@ -182,7 +182,7 @@ Lần chạy đầu tiên trên GitHub (`CI #1`, commit `930fbdf`) **xanh, 44 gi
 Địa chỉ công khai: **https://warranty-l2-nguyenquochuy.onrender.com** (gói Free, vùng Singapore; các bước dựng và biến môi trường ở [deployment-guide.md](deployment-guide.md) mục 8).
 Kiểm tra từ bên ngoài, trên đúng địa chỉ đó: `/health` → `200 {"status":"ok","db":"up"}`; gọi HTTP thường → `301` sang HTTPS; `/api/tickets` không đăng nhập → `401`;
 đăng nhập `nv01` rồi tra cứu `0901234567` → "Nguyen AB"; nhân viên `nv02` sửa phiếu của `nv01` → `403`, chủ phiếu → `200`.
-Dữ liệu demo quay về dữ liệu mẫu mỗi khi Render khởi động lại (gói Free không có ổ đĩa bền).
+Dữ liệu demo quay về dữ liệu mẫu mỗi khi Render khởi động lại (gói Free không có ổ đĩa bền); dữ liệu mẫu của bản demo gồm cả 14 phiếu mẫu để danh sách phiếu không trống.
 
 ![curl tới địa chỉ Render](screenshots/render-1-curl.png)
 

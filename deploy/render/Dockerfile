@@ -28,6 +28,8 @@ COPY package.json ./
 COPY src ./src
 COPY migrations ./migrations
 COPY seeds ./seeds
+# Demo-only sample tickets (14 tickets with history); loaded by bake-db.sh, never by docker compose.
+COPY deploy/render/demo-tickets.sql ./demo-tickets.sql
 
 COPY deploy/render/mysql.cnf /etc/mysql/conf.d/render.cnf
 COPY deploy/render/bake-db.sh deploy/render/entrypoint.sh /usr/local/bin/
