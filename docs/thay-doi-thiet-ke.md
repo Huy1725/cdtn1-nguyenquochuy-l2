@@ -16,7 +16,7 @@ Mọi sai lệch so với thiết kế ban đầu (Bài tập 1) đều được
 
 - **Thay đổi gì:** Loại bỏ nút "Xóa" trên Wireframe màn hình Cập nhật phiếu bảo hành, thay thế bằng nút "Hủy phiếu (Soft Delete)".
 - **Vì sao:** Quy tắc nghiệp vụ QT-13 nghiêm cấm xóa vật lý (hard delete) dữ liệu trong CSDL để đảm bảo tính truy vết. Thao tác "Hủy phiếu" bản chất là cập nhật cột `status` thành `'HUY'` trong bảng `ticket` và ghi nhận một bản ghi log tương ứng vào `ticket_status_log`.
-- **Ảnh hưởng:** `wireframe.drawio`, `docs/wireframe.png`, `docs/srs.md` (Mục 5 - Wireframe).
+- **Ảnh hưởng:** `docs/taopbh.png`, `docs/capnhatpbh.png`, `docs/chitietpbh.png` (ba wireframe), `docs/srs.md` (Mục 5 - Wireframe).
 
 ---
 
@@ -147,10 +147,10 @@ Mọi sai lệch so với thiết kế ban đầu (Bài tập 1) đều được
   - Thêm `Dockerfile`, `docker-compose.yml` (dịch vụ `db` MySQL 8.0 và `app`), `.dockerignore`, viết lại `.env.example` (tiếng Anh, đủ biến, giá trị mẫu chạy được). Hai lệnh dựng hệ thống: `cp .env.example .env` rồi `docker compose up -d --build`.
   - Bảng và dữ liệu mẫu nạp tự động khi volume trống: bốn tệp SQL trong `migrations/` và `seeds/` được mount vào `/docker-entrypoint-initdb.d/` với tên có thứ tự (initdb không đọc thư mục con và hai thư mục có tệp trùng số `001`). `db` chỉ báo healthy qua cổng TCP nên sau khi nạp xong; `app` chờ `db` healthy; không mở cổng CSDL ra máy chủ.
   - Thêm `GET /health` (kiểm tra CSDL, trả 503 khi chết) để Docker và người vận hành biết hệ thống đã lên; thêm `src/config.js` kiểm tra biến bắt buộc khi khởi động (thiếu thì dừng, chỉ in tên biến).
-  - Máy chủ Node phục vụ luôn bản build của giao diện React (`src/routes/static.js`, có chống path traversal): người chấm chỉ cần mở một cổng `3000`, không cần dịch vụ nginx riêng và không phát sinh vấn đề CORS.
+  - Máy chủ Node phục vụ luôn bản build của giao diện React (`src/routes/static.js`, có chống path traversal): chỉ cần mở một cổng `3000`, không cần dịch vụ nginx riêng và không phát sinh vấn đề CORS.
   - Lệnh kiểm thử gộp thành một lệnh `npm test` (12 TC + 22 hồi quy) chạy được trong container: `docker compose exec app npm test`; thêm `npm run tc -- TC-xx` để chạy lại đúng một test case.
   - Yêu cầu Node nâng lên ≥ 22.9 (cờ `--env-file-if-exists`, vì trong container không có tệp `.env`); image dùng `node:24-alpine`.
-- **Vì sao:** Đề BT3 yêu cầu gói dựng lại được từ thư mục trống bằng tối đa hai lệnh (mục cốt lõi C1) và bộ test chạy PASS bằng một lệnh (C3). Ứng dụng và test kết nối MySQL bằng tài khoản `root` trong mạng nội bộ của compose vì test tích hợp phải tạo CSDL riêng `warranty_l2_test`; đây là giới hạn đã biết, ghi ở `docs/checklist-bao-mat.md`.
+- **Vì sao:** Bài tập 3 yêu cầu dựng lại được hệ thống từ thư mục trống bằng tối đa hai lệnh và chạy cả bộ test bằng một lệnh. Ứng dụng và test kết nối MySQL bằng tài khoản `root` trong mạng nội bộ của compose vì test tích hợp phải tạo CSDL riêng `warranty_l2_test`; đây là giới hạn đã biết, ghi ở `docs/checklist-bao-mat.md`.
 - **Ảnh hưởng:** `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example`, `src/config.js`, `src/server.js`, `src/routes/index.js`, `src/routes/static.js`, `package.json` (scripts, engines), `scripts/run-tc.js`, `README.md`, `docs/deployment-guide.md`.
 
 ---
@@ -160,3 +160,17 @@ Mọi sai lệch so với thiết kế ban đầu (Bài tập 1) đều được
 - **Thay đổi gì:** Lỗi 500 nay được ghi một dòng JSON gồm phương thức, đường dẫn (bỏ query) và mã lỗi — không ghi nội dung lỗi. `MysqlCustomerRepository.update()` chỉ nhận bốn cột `full_name`, `phone`, `email`, `segment`.
 - **Vì sao:** Khi điền checklist bảo mật bằng cách chạy thử: (a) tắt CSDL rồi gọi API trả đúng `500 Loi may chu` nhưng không để lại dấu vết nào cho người vận hành; (b) lệnh grep tìm SQL ghép chuỗi cho thấy tên cột trong câu `UPDATE` lấy từ khóa của đối tượng đầu vào — hiện chỉ validator tạo ra đối tượng đó nên chưa khai thác được, nhưng tầng repository không nên tin người gọi. Cả hai có test hồi quy.
 - **Ảnh hưởng:** `src/routes/index.js`, `src/app.js`, `src/repositories/mysql/customer.repository.js`, `tests/unit/packaging.test.js`, `tests/integration/mysql.test.js`.
+
+---
+
+## 18. Bản demo trên Render (tùy chọn) và CI
+
+- **Thay đổi gì:**
+  - Thêm `render.yaml` (Blueprint của Render: một web service Docker, gói Free, vùng Singapore, `healthCheckPath: /health`; hai biến bí mật `DB_PASSWORD`, `JWT_SECRET` do Render tự sinh) và `deploy/render/` (`Dockerfile` nhiều giai đoạn: dựng giao diện bằng Node, rồi image `mysql:8.0` kèm Node; `bake-db.sh` nạp migrations + seeds vào thư mục dữ liệu ngay lúc build; `entrypoint.sh` khởi động MySQL, đợi tài khoản của ứng dụng đăng nhập được rồi chạy `node src/server.js`; `mysql.cnf` giảm bộ nhớ).
+  - Thêm `.gitattributes` giữ dòng LF cho `*.sh`, `*.cnf`, `Dockerfile` (tệp chạy trong container Linux; CRLF làm hỏng script khi clone trên Windows) và `.github/workflows/ci.yml` (GitHub Actions chạy `npm ci`, `npm run build`, `npm test` với MySQL 8.0 mỗi lần push).
+  - Bản Render dùng tài khoản MySQL riêng `app` chỉ có SELECT/INSERT/UPDATE/DELETE trên `warranty_l2`; `root` đổi mật khẩu ngẫu nhiên mỗi lần khởi động và MySQL chỉ nghe ở 127.0.0.1.
+  - Mã trong `src/`, `tests/`, `migrations/`, `seeds/`, `Dockerfile`, `docker-compose.yml` **không đổi** so với bản đã đóng gói (không đổi so với `abd0463`, trừ khoảng kiểm tra sức khỏe của `docker-compose.yml` ở `fbe6e92`).
+- **Vì sao:** Đề bài cho phép (không bắt buộc) đưa bản chạy thử lên một nền tảng miễn phí, và tôi chọn Render. Gói miễn phí của Render không có MySQL quản lý và không có ổ đĩa bền, nên một image chứa cả MySQL và ứng dụng là cách đơn giản nhất không cần mở tài khoản dịch vụ ngoài hay trả phí
+  mà vẫn giữ nguyên MySQL 8.0 và mã đã kiểm thử. Đánh đổi đã biết: dữ liệu quay về dữ liệu mẫu mỗi khi Render khởi động lại hoặc deploy lại, và hai tiến trình trong một container không phải thiết kế cho môi trường thật.
+  Bí mật không nằm trong repo hay image: chúng được đọc từ biến môi trường của Render lúc container khởi động.
+- **Ảnh hưởng:** `render.yaml`, `deploy/render/*`, `.gitattributes`, `.github/workflows/ci.yml`, `docs/deployment-guide.md` (mục 8), `README.md` (mục 3.3), `docs/test-report.md` (mục 8), `docs/screenshots/render-*.png`.

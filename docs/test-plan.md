@@ -16,7 +16,7 @@ tạo phiếu (QT-04 hạn cam kết, US5 trạng thái bảo hành, US6 phân l
 | Giao diện React bằng test tự động | Giao diện không chứa quy tắc nghiệp vụ (mọi quy tắc nằm ở `src/services/`, `src/validators/`); ba trạng thái đang tải/rỗng/lỗi đã kiểm thủ công và có ảnh ở BT2. Test UI tốn kém, dễ vỡ, khi vỡ không chỉ ra lỗi nằm ở đâu. |
 | `GET /api/categories` | Chỉ đọc danh mục tĩnh 6 nhóm, không có quy tắc nghiệp vụ. |
 | Thứ tự chuyển trạng thái (VD `HOAN_TAT → MOI`) | SRS chưa đặc tả máy trạng thái của phiếu nên không có kết quả mong đợi để đối chiếu — ghi nhận là hạn chế, không phải bug. |
-| Hiệu năng, tải, kiểm thử xâm nhập | Ngoài phạm vi Bài tập 3 (đề mục 1). |
+| Hiệu năng, tải, kiểm thử xâm nhập | Nằm ngoài phạm vi của Bài tập 3. |
 | Luồng L3/L4 (phân công kỹ thuật viên, sửa chữa) | Không thuộc luồng L2 (WON'T trong SRS). |
 
 **Kỹ thuật chọn dữ liệu:** phân vùng tương đương (thiết bị còn bảo hành / hết bảo hành / không xác định;
@@ -39,7 +39,7 @@ Ngoài 12 TC trên, `npm test` còn chạy 22 test hồi quy (đánh dấu `[reg
 log lỗi 500, chuỗi injection trong SĐT, tên cột khi cập nhật khách) — để lỗi đã sửa không quay lại. Các test này không
 tính vào 12 TC của báo cáo.
 
-Tầng API nhiều hơn tỉ lệ gợi ý vì nhiều quy tắc chỉ thấy đủ khi đi qua cả validator, service và bảng dịch mã lỗi
+Tầng API có nhiều test nhất vì nhiều quy tắc chỉ lộ ra khi đi qua cả validator, service và bảng dịch mã lỗi
 sang HTTP; chạy với repository bộ nhớ nên vẫn nhanh (< 50 ms/test) và không cần CSDL.
 
 ## 3. Tiêu chí thành công đo được
@@ -62,7 +62,7 @@ sang HTTP; chạy với repository bộ nhớ nên vẫn nhanh (< 50 ms/test) v�
   - Toàn bộ bộ kiểm thử (12 TC + 22 hồi quy), một lệnh: `npm test` — cần MySQL đang chạy vì có 2 TC tích hợp.
   - Trong Docker (không cần cài gì trên máy): `docker compose exec app npm test` — cùng 34 test, chạy trên CSDL của compose.
   - Không có MySQL: `npm run test:unit` (10 TC + 20 hồi quy) · chỉ phần MySQL: `npm run test:integration` (TC-10, TC-12).
-  - **Chạy lại đúng một TC** (giảng viên chọn ngẫu nhiên tại chỗ): `npm run tc -- TC-07` — tự tìm file test chứa TC đó.
+  - **Chạy lại đúng một TC** (ví dụ khi cần chạy lại một test case ngay tại chỗ): `npm run tc -- TC-07` — tự tìm file test chứa TC đó.
     (Cú pháp `npm test -- --test-name-pattern=...` không lọc được vì tham số bị đưa vào test chứ không vào Node.)
 - **Minh chứng:** mỗi TC có đúng một ảnh chụp lần chạy cuối `docs/screenshots/TC-xx-pass.png`, chụp từ lệnh
   `npm run tc -- TC-xx`; ảnh có tên lệnh (tên tab + dòng npm in), commit đang kiểm, và dòng `thực tế:` in **giá trị đọc từ kết quả thật**

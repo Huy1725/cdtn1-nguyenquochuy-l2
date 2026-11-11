@@ -14,7 +14,7 @@ Kế hoạch kiểm thử: [test-plan.md](test-plan.md) · Nhật ký lỗi: [bu
 | 5 | 2026-11-08 | `7071796` (đã sửa BUG-10) | 12 | **12** | 0 | — | [run5-unit-pass.png](screenshots/run5-unit-pass.png), [run5-integration-pass.png](screenshots/run5-integration-pass.png) |
 | 6 | 2026-11-10 | `abd0463` (một lệnh `npm test`: 34/34) | 12 | **12** | 0 | — | [run6-npm-test.png](screenshots/run6-npm-test.png) (cả bộ); mỗi TC một ảnh, xem mục 4 |
 
-Theo loại (đủ 5 loại đề yêu cầu): luồng đúng 5 (TC-01, 02, 03, 10, 11) · giá trị biên 2 (TC-04, 05) ·
+Cả năm loại test đều có: luồng đúng 5 (TC-01, 02, 03, 10, 11) · giá trị biên 2 (TC-04, 05) ·
 dữ liệu sai 2 (TC-06, 07) · bảo mật 2 (TC-08, 09) · tái lập 1 (TC-12).
 Ngoài 12 TC, bộ kiểm thử có 22 test hồi quy (`[regression]`, không tính vào 12 TC): 10 từ BT2, 1 cho BUG-09,
 4 cho BUG-10 (đăng nhập sai, token hết hạn/bị sửa, mật khẩu băm, không giả mạo người thực hiện) và 7 thêm ở khâu
@@ -176,3 +176,26 @@ rồi chạy `npm ci`, `npm run build`, `npm test`. Trước khi push, các bư�
 Lần chạy đầu tiên trên GitHub (`CI #1`, commit `930fbdf`) **xanh, 44 giây**.
 
 ![CI #1 xanh trên tab Actions](screenshots/ci-green.png)
+
+## 8. Bản demo trên Render
+
+Địa chỉ công khai: **https://warranty-l2-nguyenquochuy.onrender.com** (gói Free, vùng Singapore; các bước dựng và biến môi trường ở [deployment-guide.md](deployment-guide.md) mục 8).
+Kiểm tra từ bên ngoài, trên đúng địa chỉ đó: `/health` → `200 {"status":"ok","db":"up"}`; gọi HTTP thường → `301` sang HTTPS; `/api/tickets` không đăng nhập → `401`;
+đăng nhập `nv01` rồi tra cứu `0901234567` → "Nguyen AB"; nhân viên `nv02` sửa phiếu của `nv01` → `403`, chủ phiếu → `200`.
+Dữ liệu demo quay về dữ liệu mẫu mỗi khi Render khởi động lại (gói Free không có ổ đĩa bền).
+
+![curl tới địa chỉ Render](screenshots/render-1-curl.png)
+
+Giao diện mở trong Edge thật (thanh địa chỉ hiện địa chỉ Render và ổ khóa HTTPS): trang đăng nhập, tra cứu khách hàng sau khi đăng nhập, phiếu vừa tạo.
+
+![Trang đăng nhập](screenshots/render-2-login.png)
+
+![Tra cứu khách hàng](screenshots/render-3-lookup.png)
+
+![Phiếu vừa tạo](screenshots/render-4-ticket.png)
+
+Hai ảnh sau chụp từ trang quản lý của Render: dịch vụ ở trạng thái Live (gói Free, commit `92b70dc`) và tab Environment, nơi `DB_PASSWORD` và `JWT_SECRET` do Render tạo ra, giá trị đang được ẩn.
+
+![Trang dịch vụ trên Render](screenshots/render-5-service.png)
+
+![Tab Environment của dịch vụ](screenshots/render-6-env.png)

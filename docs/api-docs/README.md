@@ -2,7 +2,8 @@
 
 Track SE · Assignment 3 · tag `v1.0`
 
-Base URL when started with Docker: `http://localhost:3000` (host port is `APP_PORT`). All bodies are JSON (`content-type: application/json`).
+Base URL when started with Docker: `http://localhost:3000` (host port is `APP_PORT`); the public demo of Deployment Guide section 8 serves the same API at `https://warranty-l2-nguyenquochuy.onrender.com`. All bodies are JSON (`content-type: application/json`).
+Besides the 13 endpoints below the server answers `OPTIONS` (CORS preflight) and, for `GET`/`HEAD` paths outside `/api`, serves the built web UI (`dist/`, with `index.html` as the fallback for page routes); these are not API endpoints.
 Every request/response example below was copied from a real run of the system started with `docker compose up -d --build`
 on a fresh database (the sample data of `docs/deployment-guide.md`). Only the token string is shortened (`eyJ…`) and
 some long lists are cut where marked.

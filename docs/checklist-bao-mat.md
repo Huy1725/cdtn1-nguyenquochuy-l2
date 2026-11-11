@@ -4,7 +4,7 @@ Sinh viên: Nguyễn Quốc Huy · 2374802010185 · Track SE · Bài tập 3
 
 Mỗi mục ghi **ĐÃ LÀM / CHƯA LÀM / KHÔNG ÁP DỤNG** kèm một dòng minh chứng và ảnh chụp lần chạy thật trong [screenshots/](screenshots/).
 Ảnh `sec-N.png` chụp từ cửa sổ terminal chạy đúng các lệnh ghi trong ảnh; ảnh không qua chỉnh sửa.
-Các lệnh ở mục 1, 2, 7 chạy trên mã nguồn tại commit `abd0463` (mã ứng dụng — `src/`, `tests/`, `migrations/`, `seeds/`, `Dockerfile` — không đổi từ commit đó đến tag `v1.0`; sau đó chỉ sửa `docker-compose.yml` (khoảng kiểm tra sức khỏe, BUG-12) và tài liệu); các lệnh ở mục 4, 5, 6 chạy trên hệ thống dựng bằng
+Các lệnh ở mục 1, 2, 7 chạy trên mã nguồn tại commit `abd0463` (mã ứng dụng — `src/`, `tests/`, `migrations/`, `seeds/`, `Dockerfile` — không đổi từ commit đó đến tag `v1.0`; sau đó chỉ sửa `docker-compose.yml` (khoảng kiểm tra sức khỏe, BUG-12), thêm CI (`.github/`), gói deploy thử (`render.yaml`, `deploy/`, `.gitattributes`) và tài liệu); các lệnh ở mục 4, 5, 6 chạy trên hệ thống dựng bằng
 `docker compose up -d --build` (xem [deployment-guide.md](deployment-guide.md)).
 
 ## 1. Không có secret nào trong repo — ĐÃ LÀM
@@ -13,7 +13,7 @@ Minh chứng: `git log --all --oneline -- .env` → rỗng; `git check-ignore -v
 `.env` nằm trong `.gitignore` và `.dockerignore` nên không vào repo lẫn image.
 Ảnh: [sec-1.png](screenshots/sec-1.png)
 
-> Lưu ý trung thực: repo có công khai hai tài khoản demo (`nv01`/`matkhau01`, `nv02`/`matkhau02`) trong README, test và seed — đây là dữ liệu mẫu, trong CSDL chỉ lưu dạng băm; phải đổi/xóa khi triển khai thật.
+> Lưu ý: repo có công khai hai tài khoản demo (`nv01`/`matkhau01`, `nv02`/`matkhau02`) trong README, test và seed — đây là dữ liệu mẫu, trong CSDL chỉ lưu dạng băm; phải đổi/xóa khi triển khai thật.
 
 ## 2. Dữ liệu vào được kiểm ở tầng ứng dụng — ĐÃ LÀM
 
@@ -85,13 +85,13 @@ Minh chứng: `package-lock.json` đã commit và Docker cài bằng `npm ci` (�
 | A10 Mishandling of Exceptional Conditions | CSDL chết, JSON hỏng | 5 |
 | A06, A08 | thuộc Chuyên đề tốt nghiệp 2 | — |
 
-## Giới hạn đã biết (CHƯA LÀM — ghi trung thực)
+## Giới hạn đã biết (CHƯA LÀM)
 
 | Giới hạn | Rủi ro | Hướng xử lý nếu triển khai thật |
 |---|---|---|
 | Không giới hạn số lần đăng nhập sai (không rate limit) | Dò mật khẩu bằng vét cạn (A07) | Giới hạn theo IP/tài khoản, khóa tạm |
 | Chỉ chạy HTTP trên localhost, chưa có TLS | Token và mật khẩu đi qua mạng dạng rõ nếu không có proxy | Đặt sau reverse proxy có chứng chỉ TLS (mô tả ở Deployment Guide mục 7) |
-| Ứng dụng và test kết nối MySQL bằng tài khoản `root` trong mạng nội bộ của compose | Một lỗ hổng trong app có quyền quá rộng trên CSDL | Tạo tài khoản riêng chỉ có quyền trên CSDL `warranty_l2`; chạy test tích hợp ở chỗ khác |
+| Ứng dụng và test kết nối MySQL bằng tài khoản `root` trong mạng nội bộ của compose (bản deploy thử trên Render đã dùng tài khoản riêng `app` chỉ có SELECT/INSERT/UPDATE/DELETE — Guide mục 8) | Một lỗ hổng trong app có quyền quá rộng trên CSDL | Tạo tài khoản riêng chỉ có quyền trên CSDL `warranty_l2`; chạy test tích hợp ở chỗ khác |
 | Token (8 giờ) lưu trong `sessionStorage` của trình duyệt, không thể thu hồi trước hạn | Nếu có XSS thì token bị đọc; token bị lộ vẫn dùng được đến khi hết hạn | Giữ React tự escape (đã grep không có `innerHTML`); thêm refresh token + danh sách thu hồi |
 | Mật khẩu hai tài khoản demo công khai trong repo | Ai cũng đăng nhập được hệ thống demo | Đổi hoặc xóa tài khoản demo khi triển khai thật |
 | Chưa kiểm thử xâm nhập, chưa mô hình hóa mối đe dọa | — | Thuộc Chuyên đề tốt nghiệp 2 |

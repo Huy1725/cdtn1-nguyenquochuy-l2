@@ -7,7 +7,7 @@
 Hệ thống hỗ trợ nhân viên cửa hàng tiếp nhận nhanh chóng và chính xác các yêu cầu bảo hành từ khách hàng. Chức năng lõi gồm tra cứu hồ sơ khách hàng, ghi nhận thiết bị, tự động đối chiếu hạn bảo hành, phân loại nhóm sự cố và tự động tính hạn cam kết trả máy (loại trừ Chủ Nhật).
 
 ## 2. Yêu cầu môi trường
-**Cách chính (khuyến nghị, đúng cách người chấm làm): chỉ cần Docker + Git.**
+**Cách chính (khuyến nghị): chỉ cần Docker + Git, đúng các bước của Deployment Guide.**
 * Docker Engine 24+ có Docker Compose v2, Git 2.30+, cổng `3000` còn trống. **Không** cần cài Node.js hay MySQL.
 * Hướng dẫn đầy đủ (tiếng Anh, có bảng biến môi trường, dữ liệu mẫu, kiểm tra hệ thống đã chạy đúng và xử lý sự cố): [docs/deployment-guide.md](docs/deployment-guide.md).
 
@@ -63,13 +63,18 @@ Mọi API dưới `/api` (trừ `POST /api/auth/login`) cần header `Authorizat
 
 Kiểm thử tự động (CI): mỗi lần push, GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)) chạy `npm ci`, `npm run build` và `npm test` trên máy Ubuntu sạch với MySQL 8.0; kết quả ở tab **Actions** của repo.
 
+### 3.3. Bản chạy thử trên Render (tùy chọn)
+Bản demo công khai: **https://warranty-l2-nguyenquochuy.onrender.com** — đăng nhập `nv01` / `matkhau01`. Chạy trên gói miễn phí của Render nên **ngủ sau 15 phút không có truy cập** (lần mở đầu tiên sau đó mất khoảng một phút)
+và **dữ liệu quay về dữ liệu mẫu mỗi khi Render khởi động lại** (gói miễn phí không có MySQL quản lý và không có ổ đĩa bền, nên MySQL chạy cùng container với ứng dụng).
+Các bước đã làm, biến môi trường và lưu ý bảo mật: [Deployment Guide mục 8](docs/deployment-guide.md). Cách dựng bằng Docker Compose ở mục 3.1 không thay đổi.
+
 ## 4. Cấu trúc thư mục
 
 ```text
 cdtn1-nguyenquochuy-l2/
 ├── docs/                          # Tài liệu thiết kế và kiểm thử
 │   ├── test-plan.md, test-report.md   #   Test Plan (4 mục) và Test Report (12 TC × 8 cột + ảnh chụp)
-│   ├── deployment-guide.md        #   Hướng dẫn triển khai (tiếng Anh, 5 mục)
+│   ├── deployment-guide.md        #   Hướng dẫn triển khai (tiếng Anh): 5 mục bắt buộc + xử lý sự cố + ghi chú + deploy Render
 │   ├── checklist-bao-mat.md       #   Checklist bảo mật 7 mục, mỗi mục có minh chứng
 │   ├── api-docs/README.md         #   Tài liệu API (tiếng Anh): 13 endpoint, ví dụ thật
 │   ├── screenshots/               #   Ảnh chụp kết quả chạy thật, đặt tên theo TC (TC-01-pass.png, …)
@@ -114,6 +119,8 @@ cdtn1-nguyenquochuy-l2/
 │       ├── pages/                 #   4 màn hình: đăng nhập, tạo phiếu, theo dõi phiếu, chi tiết phiếu
 │       └── components/            #   Layout, Field, ErrorNotice, nhãn hiển thị
 ├── Dockerfile, docker-compose.yml, .dockerignore   # Đóng gói: image Node (API + giao diện) và MySQL
+├── render.yaml, deploy/render/    # (tùy chọn) deploy thử lên Render: Blueprint + image gộp Node và MySQL 8.0 đã nạp dữ liệu mẫu
+├── .gitattributes                 # giữ dòng LF cho *.sh, *.cnf, Dockerfile (chạy trong container Linux)
 ├── .github/workflows/ci.yml       # CI: GitHub Actions chạy build + npm test (34 test) mỗi lần push
 ├── tests/
 │   ├── unit/warranty.test.js      # TC-01…09, TC-11 + 15 test hồi quy (repository bộ nhớ, không cần MySQL)
@@ -134,7 +141,7 @@ cdtn1-nguyenquochuy-l2/
 ## 5. Kiểm thử
 ```bash
 npm test                  # TOÀN BỘ bộ kiểm thử bằng một lệnh: 12 TC + 22 hồi quy = 34 test (cần MySQL)
-docker compose exec app npm test   # cùng 34 test, chạy trong container (cách của người chấm)
+docker compose exec app npm test   # cùng 34 test, chạy ngay trong container
 npm run tc -- TC-07       # chạy lại đúng MỘT test case (đổi số cho TC khác)
 npm run test:unit         # chỉ phần không cần MySQL (10 TC + 20 hồi quy)
 npm run test:integration  # chỉ phần MySQL thật (TC-10, TC-12)
@@ -157,4 +164,5 @@ npm run test:integration  # chỉ phần MySQL thật (TC-10, TC-12)
 - [x] Repository MySQL thật cho `npm start` (`src/repositories/mysql/`); `npm test` vẫn dùng bộ nhớ.
 - [x] Đăng nhập nhân viên (token HS256, mật khẩu băm scrypt) và quy tắc chủ phiếu — sửa BUG-10 (Bài tập 3).
 - [x] Đóng gói Docker (Dockerfile + docker-compose, healthcheck, dữ liệu mẫu tự nạp, `/health`) — hai lệnh dựng từ thư mục trống (Bài tập 3).
-- [x] Test Plan, Test Report (12 TC có ảnh), Bug Log (4 bug), Deployment Guide, checklist bảo mật, API docs (Bài tập 3).
+- [x] Test Plan, Test Report (12 TC có ảnh), Bug Log (5 bug, BUG-08…12), Deployment Guide, checklist bảo mật, API docs (Bài tập 3).
+- [x] CI bằng GitHub Actions (build + 34 test với MySQL 8.0 trên máy Ubuntu sạch) và bản deploy thử trên Render gói miễn phí — Deployment Guide mục 8.
